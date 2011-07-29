@@ -1,0 +1,143 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>ac.technion.geoinfo</groupId>
+  <artifactId>ssnTrj</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>ssnTrj</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <geotools.version>2.7-M3</geotools.version>
+  </properties>
+
+<repositories>
+	<repository>
+	      <id>neo4j-public-repository</id>
+	      <name>Publically available Maven 2 repository for Neo4j</name>
+	      <url>http://m2.neo4j.org</url>
+	      <snapshots>
+          	<enabled>true</enabled>
+	      </snapshots>
+	  </repository>
+	 
+	 <repository>
+	      <id>neo4j-spatial.git</id>
+	      <name>Publically available Maven 2 repository for Neo4j-spatial</name>
+	      <url>https://github.com/neo4j/neo4j-spatial</url>
+	      <snapshots>
+          	<enabled>true</enabled>
+	      </snapshots>
+	  </repository> 
+
+ 	<repository>
+	      <id>graphdb.git</id>
+	      <name>Publically available Maven 2 repository for Neo4j</name>
+	      <url>https://github.com/neo4j/enterprise</url>
+	      <snapshots>
+          	<enabled>true</enabled>
+	      </snapshots>
+	  </repository> 
+	 
+	  <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>osgeo</id>
+            <name>Open Source Geospatial Foundation Repository</name>
+            <url>http://download.osgeo.org/webdav/geotools/</url>
+        </repository>
+       
+       
+        <repository>
+            <id>opengeo</id>
+            <name>Geotools repository</name>
+            <url>http://download.osgeo.org/webdav/geotools/</url>
+        </repository>
+        
+        <repository>
+		    <id>maven2-repository.java.net</id>
+		    <name>Java.net Repository for Maven</name>
+		    <url>http://download.java.net/maven/2/</url>
+		    <layout>default</layout>
+		</repository> 
+		
+		<repository>
+		    <id>maven-repository.java.net</id>
+		    <name>Java.net Maven 1 Repository (legacy)</name>
+		    <url>http://download.java.net/maven/1</url>
+		    <layout>legacy</layout>
+		</repository>
+	  
+  </repositories>
+  
+  <dependencies>
+ 	<dependency>
+      <groupId>org.neo4j</groupId>
+      <artifactId>neo4j-kernel</artifactId>
+      <version>1.4</version>
+    </dependency>
+    
+    <dependency>
+	  <groupId>org.neo4j.app</groupId>
+	  <artifactId>neo4j-server</artifactId>
+	  <version>1.4</version>
+	</dependency>
+	
+ 	<dependency> 
+	  <groupId>org.neo4j</groupId>
+	  <artifactId>neo4j-spatial</artifactId>
+	  <version>0.6-SNAPSHOT</version>
+	</dependency>
+	
+	<dependency>
+	    <groupId>com.sun.jersey</groupId>
+	    <artifactId>jersey-server</artifactId>
+	    <version>1.6</version>
+    </dependency>
+	 
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-main</artifactId>
+      <version>${geotools.version}</version>
+      <scope>provided</scope>
+      <exclusions>
+	  </exclusions>	
+    </dependency>
+    
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-shapefile</artifactId>
+      <version>${geotools.version}</version>
+      <scope>provided</scope>
+        <exclusions>
+        </exclusions>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-render</artifactId>
+      <version>${geotools.version}</version>
+      <scope>provided</scope>
+      <exclusions>
+          <exclusion>
+              <groupId>it.geosolutions.imageio-ext</groupId>
+              <artifactId>imageio-ext-tiff</artifactId>
+          </exclusion>
+	  </exclusions>	
+    </dependency>
+
+  </dependencies>
+
+</project>
