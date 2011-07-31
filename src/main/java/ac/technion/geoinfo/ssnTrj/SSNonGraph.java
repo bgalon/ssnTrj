@@ -14,8 +14,11 @@ import org.neo4j.gis.spatial.WKTGeometryEncoder;
 import org.neo4j.gis.spatial.query.SearchEqual;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
@@ -25,11 +28,18 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.io.WKTReader;
 
 import ac.technion.geoinfo.ssnTrj.domain.NodeWarpperImpl;
+import ac.technion.geoinfo.ssnTrj.domain.Route;
+import ac.technion.geoinfo.ssnTrj.domain.RouteImpl;
+import ac.technion.geoinfo.ssnTrj.domain.SocialRelation;
 import ac.technion.geoinfo.ssnTrj.domain.SpatialEntity;
 import ac.technion.geoinfo.ssnTrj.domain.SpatialEntityImpl;
 import ac.technion.geoinfo.ssnTrj.domain.SpatialRelation;
+import ac.technion.geoinfo.ssnTrj.domain.TimePatternRelation;
+import ac.technion.geoinfo.ssnTrj.domain.TimePattren;
+import ac.technion.geoinfo.ssnTrj.domain.TimePattrenImpl;
 import ac.technion.geoinfo.ssnTrj.domain.User;
 import ac.technion.geoinfo.ssnTrj.domain.Static;
+import ac.technion.geoinfo.ssnTrj.domain.UserImpl;
 import ac.technion.geoinfo.ssnTrj.geometry.ColsestRoadSearch;
 import ac.technion.geoinfo.ssnTrj.geometry.PolygonContainsSearch;
 import ac.technion.geoinfo.ssnTrj.geometry.PolygonWithinSearch;
@@ -44,7 +54,7 @@ public class SSNonGraph implements SSN, Static {
 	private final SpatialDatabaseService sgDB;
 	private EditableLayer spatialLyr;
 	
-	//const for map resolotion
+	//const for map resolution
 	private final double METER = 8.98315E-06;
 	private final double SEARCH_COLSEST_ROAD = 15 * METER;
 	
@@ -52,11 +62,15 @@ public class SSNonGraph implements SSN, Static {
 	{
 		graphDB = new EmbeddedGraphDatabase(path);
 		sgDB = new SpatialDatabaseService(graphDB);
-		graphDB.index().forNodes(SPATIAL_FULLTEXT_INDEX, 
-				MapUtil.stringMap( IndexManager.PROVIDER, "lucene", "type", "fulltext", "to_lower_case", "true"));
 		Transaction tx = sgDB.getDatabase().beginTx(); 
 		try
 		{
+			//create the indexes
+			graphDB.index().forNodes(SPATIAL_FULLTEXT_INDEX, 
+					MapUtil.stringMap( IndexManager.PROVIDER, "lucene", "type", "fulltext", "to_lower_case", "true"));
+			graphDB.index().forNodes(SOCIAL_FULLTEXT_INDEX, 
+					MapUtil.stringMap( IndexManager.PROVIDER, "lucene", "type", "fulltext", "to_lower_case", "true"));
+			
 			if (!sgDB.containsLayer(SPATIAL_LAYER))
 			{
 				//spatialLyr = (EditableLayer)sgDB.createLayer(SPATIAL_LAYER, WKTGeometryEncoder.class, EditableLayerImpl.class);
@@ -289,6 +303,7 @@ public class SSNonGraph implements SSN, Static {
 		{
 			throw new Exception("the attributes and the values array are not in the same length");
 		}
+		//update attributes
 		for(int i = 0; i < attributes.length; i++)
 		{
 			newSE.setProperty(attributes[i], values[i]);
@@ -330,6 +345,8 @@ public class SSNonGraph implements SSN, Static {
 			
 	}
 	
+/*
+//*********************************extend function************************
 //	private LineString extend(LineString extendMe, double extendIn)
 //	{
 //		Coordinate[] theCoord = (extendMe.getCoordinates()).clone();
@@ -350,13 +367,174 @@ public class SSNonGraph implements SSN, Static {
 //		
 //		return spatialLyr.getGeometryFactory().createLineString(theCoord);
 //	}
+//********************************end of extend function************************
+*/
+
+	public User AddUser(String uName, String[] relatedUsers, String[] relationType, String[] attributes, String[] values) throws Exception {
+		User newUser = null;
+		Transaction tx = sgDB.getDatabase().beginTx(); 
+		try
+		{
+			Index<Node> socialKeyIndex = graphDB.index().forNodes(SOCIAL_KEY_INDEX);
+			IndexHits<Node> findIfExsist = socialKeyIndex.get(SOCIAL_KEY_INDEX_KEY, uName);
+			if (!(findIfExsist.getSingle() == null))
+			{
+				throw new Exception("user " + uName + " alraey exsist");
+			}
+			newUser = new UserImpl(graphDB.createNode());
+			newUser.setProperty(SOCIAL_KEY_INDEX_KEY, uName);
+			
+			String fullIndexField = "";
+			//add the attributes 
+			if (attributes.length != values.length)
+			{
+				throw new Exception("the attributes and the values array are not in the same length");
+			}
+			//update attributes
+			for(int i = 0; i < attributes.length; i++)
+			{
+				newUser.setProperty(attributes[i], values[i]);
+				fullIndexField = fullIndexField + values[i].toString() + ";";
+			}
+			//update the index
+			if(!fullIndexField.isEmpty()){
+				fullIndexField = fullIndexField.substring(0, fullIndexField.length() -1);
+				Index<Node> userFulltxtInd = graphDB.index().forNodes(SOCIAL_FULLTEXT_INDEX); 
+				userFulltxtInd.add(newUser.getNode() , SOCIAL_FULLTEXT_KEY, fullIndexField);
+				newUser.setProperty(FULLTEXT_PROPERTY, fullIndexField);
+			}
+			
+			newUser.setProperty(SSN_TYPE, USER);
+			
+			if (relatedUsers!=null){
+				for (int i = 0; i < relatedUsers.length; i++) 
+				{
+					String tempUser = relatedUsers[i];
+					if (tempUser.isEmpty()) continue;
+					IndexHits<Node> tempNodeHits = socialKeyIndex.get(SOCIAL_KEY_INDEX_KEY, tempUser);
+					Node tempNode = tempNodeHits.getSingle();
+					if (tempNode != null){
+						addSocialRelationship(newUser, new UserImpl(tempNode), SocialRelation.Parse(relationType[i]));
+					}
+					else{
+						tx.failure();
+						throw new Exception("no such friend " + tempUser);
+					}
+				}
+			}
+		}
+		catch (Exception e) 
+		{
+			// TODO: handle exception
+			System.out.println(e.getMessage());
+			throw e;
+		}
+		finally
+		{
+			tx.finish();
+		}
+		return newUser;
+	}
+		
+	private static Relationship addSocialRelationship(User user1, User user2, SocialRelation rlationType){
+		return user1.createRelationshipTo(user2, rlationType);
+	}
 	
-	public User AddUser() {
-		// TODO Auto-generated method stub
-		//add a fulltext field 
-		return null;
+	public TimePattren addPattren(User theUser, SpatialEntity theSE, String TimePattrenAsStr, double confident) throws Exception
+	{
+		TimePattren theTP;
+		if(confident < 0 || confident > 1)
+			throw new Exception("con't create time patttren, the confident value is out of range");
+		Transaction tx = sgDB.getDatabase().beginTx(); 
+		try
+		{
+			Relationship newTp = theUser.createRelationshipTo(theSE, TimePatternRelation.TimePattren);
+			newTp.setProperty(TIME_PATTERN_PORP, TimePattrenAsStr);
+			newTp.setProperty(CONFIDENT_PROP, confident);
+			theTP = new TimePattrenImpl(newTp);
+			tx.success();
+		}
+		catch (Exception e) {
+			// TODO: handle exception
+			System.out.println(e.getMessage());
+			throw e;
+		}
+		finally
+		{
+			tx.finish();
+		}
+		return theTP;
 	}
 
+	public Route addRoute(SpatialEntity start, SpatialEntity end, SpatialEntity[] segments) throws Exception {
+		//the segments array must be in the real order
+		if(start == null && end == null)
+		{
+			throw new Exception("error while create route. start and end are both null");
+		}
+		Node newRoute = sgDB.getDatabase().createNode();
+		Transaction tx = sgDB.getDatabase().beginTx(); 
+		try
+		{
+			//check if start lead to the first segment
+			if (start != null && chcekConncet(start, segments[0], SpatialRelation.lead_to))
+			{
+				newRoute.createRelationshipTo(segments[0], SpatialRelation.startAt);
+			}
+			else
+			{
+				throw new Exception("error while create route. " + start + 
+						" do not lead to " + segments[0]);
+			}
+			for(int i = 0; i < segments.length - 1; i++)
+			{
+				if(chcekConncet(segments[i], segments[i+1], SpatialRelation.touch))
+				{
+					newRoute.createRelationshipTo(segments[i], SpatialRelation.touch);
+				}
+				else 
+				{
+					throw new Exception("error while create route. " + segments[i] + 
+							" do not conncet to " + segments[i+1]);
+				}
+			}
+			newRoute.createRelationshipTo(segments[segments.length -1], SpatialRelation.touch);
+			//check if the last segment lead to end
+			if (end != null && chcekConncet(segments[segments.length -1], end, SpatialRelation.lead_to))
+			{
+				newRoute.createRelationshipTo(segments[segments.length -1], SpatialRelation.endAt);
+			}
+			else
+			{
+				throw new Exception("error while create route. " + start + 
+						" do not lead to " + segments[0]);
+			}
+			
+			tx.success();
+		}
+		catch (Exception e) {
+			// TODO: handle exception
+			System.out.println(e.getMessage());
+			throw e;
+		}
+		finally
+		{
+			tx.finish();
+		}
+		return new RouteImpl(newRoute);
+	}
+	
+	private boolean chcekConncet(SpatialEntity se1, SpatialEntity se2, RelationshipType relType)
+	{
+		Iterable<Relationship> Rels = se1.getRelationships(relType);
+		for (Relationship tempRel:Rels)
+		{
+			if(tempRel.getOtherNode(se1).equals(se2))
+				return true;
+		}
+		return false;
+	}
+	
 	public void Dispose()
 	{
 		graphDB.shutdown();

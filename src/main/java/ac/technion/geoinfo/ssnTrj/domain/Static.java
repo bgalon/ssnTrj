@@ -27,6 +27,12 @@ public interface Static {
 	//Social attributes
 	
 	//Social indexes
+	public static final String SOCIAL_KEY_INDEX = "SocialKey";
+	public static final String SOCIAL_KEY_INDEX_KEY = "uname";
 	public static final String SOCIAL_FULLTEXT_INDEX = "SocialFullText";
 	public static final String SOCIAL_FULLTEXT_KEY = "SocialMainKey";
+	
+	//time pattern attributes
+	public static final String TIME_PATTERN_PORP = "timePattren";
+	public static final String CONFIDENT_PROP = "confident";
 }
