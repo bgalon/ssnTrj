@@ -21,6 +21,7 @@ import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.io.WKTReader;
 
 import ac.technion.geoinfo.ssnTrj.domain.NodeWarpperImpl;
@@ -28,6 +29,7 @@ import ac.technion.geoinfo.ssnTrj.domain.SpatialEntity;
 import ac.technion.geoinfo.ssnTrj.domain.SpatialEntityImpl;
 import ac.technion.geoinfo.ssnTrj.domain.SpatialRelation;
 import ac.technion.geoinfo.ssnTrj.domain.User;
+import ac.technion.geoinfo.ssnTrj.domain.Static;
 import ac.technion.geoinfo.ssnTrj.geometry.ColsestRoadSearch;
 import ac.technion.geoinfo.ssnTrj.geometry.PolygonContainsSearch;
 import ac.technion.geoinfo.ssnTrj.geometry.PolygonWithinSearch;
@@ -36,7 +38,7 @@ import ac.technion.geoinfo.ssnTrj.geometry.RoadTouchesSearch;
 import ac.technion.geoinfo.ssnTrj.spatial.RTreeIndexFix;
 import ac.technion.geoinfo.ssnTrj.spatial.SsnSpatialLayer;
 
-public class SSNonGraph implements SSN, ac.technion.geoinfo.ssnTrj.domain.Static {
+public class SSNonGraph implements SSN, Static {
 
 	private final GraphDatabaseService graphDB;
 	private final SpatialDatabaseService sgDB;
@@ -83,6 +85,31 @@ public class SSNonGraph implements SSN, ac.technion.geoinfo.ssnTrj.domain.Static
 		super.finalize();
 	}
 	
+	public Index<Node> getSpatialIndex()
+	{
+		return getNodeIndex(SPATIAL_FULLTEXT_INDEX);
+	}
+	
+	public Index<Node> getSocialIndex()
+	{
+		return getNodeIndex(SOCIAL_FULLTEXT_INDEX);
+	}
+	
+	private Index<Node> getNodeIndex(String indexName)
+	{
+		return graphDB.index().forNodes(indexName);
+	}
+	
+	public void executeSpatialSearch(Search theSearch)
+	{
+		spatialLyr.getIndex().executeSearch(theSearch);
+	}
+	
+	public GeometryFactory getGeometryFactory()
+	{
+		return spatialLyr.getGeometryFactory();
+	}
+	
 	public List<SpatialEntity> AddLocation(String geom, String[] attributes, Object[] values) throws Exception {
 		List<SpatialEntity> theSE = null;
 		Transaction tx = sgDB.getDatabase().beginTx(); 
@@ -126,7 +153,7 @@ public class SSNonGraph implements SSN, ac.technion.geoinfo.ssnTrj.domain.Static
 		spatialLyr.getIndex().executeSearch(cointainsPoly);
 		spatialLyr.getIndex().executeSearch(withinPoly);
 		spatialLyr.getIndex().executeSearch(LeadTo);
-		SpatialEntity newSE = AddSpatialEntity(theGeom, spatialLyr, attributes, values);
+		SpatialEntity newSE = AddSpatialEntity(theGeom, spatialLyr, BULIDING, attributes, values);
 		for(SpatialDatabaseRecord tempSpatialRecord:cointainsPoly.getResults())
 		{
 			newSE.createRelationshipTo(tempSpatialRecord.getGeomNode(), SpatialRelation.within);
@@ -234,7 +261,7 @@ public class SSNonGraph implements SSN, ac.technion.geoinfo.ssnTrj.domain.Static
 	
 	private SpatialEntity AddRoadSegment(Geometry theGeom, EditableLayer spatialLayer, String[] attributes, Object[] values) throws Exception
 	{
-		SpatialEntity newSE = AddSpatialEntity(theGeom, spatialLayer, attributes, values);
+		SpatialEntity newSE = AddSpatialEntity(theGeom, spatialLayer, ROAD_SEGMENT, attributes, values);
 		
 		Search touchSearch = new RoadTouchesSearch(theGeom);
 		spatialLayer.getIndex().executeSearch(touchSearch);
@@ -242,11 +269,11 @@ public class SSNonGraph implements SSN, ac.technion.geoinfo.ssnTrj.domain.Static
 		{
 			newSE.createRelationshipTo(tempSpatialRecord.getGeomNode(), SpatialRelation.touch);
 		}
-
+		
 		return newSE;
 	}
 	
-	private SpatialEntity AddSpatialEntity(Geometry theGeom, EditableLayer spatialLayer, String[] attributes, Object[] values) throws Exception
+	private SpatialEntity AddSpatialEntity(Geometry theGeom, EditableLayer spatialLayer, String type, String[] attributes, Object[] values) throws Exception
 	{
 		//Check if the geometry already exist in the database
 		Search equalSearch = new SearchEqual(theGeom);
@@ -272,7 +299,10 @@ public class SSNonGraph implements SSN, ac.technion.geoinfo.ssnTrj.domain.Static
 			fullIndexField = fullIndexField.substring(0, fullIndexField.length() -1);
 			Index<Node> LocationFulltxtInd = graphDB.index().forNodes(SPATIAL_FULLTEXT_INDEX); 
 			LocationFulltxtInd.add(newSE.getNode() , SPATIAL_FULLTEXT_KEY, fullIndexField);
+			newSE.setProperty(FULLTEXT_PROPERTY, fullIndexField);
 		}
+		
+		newSE.setProperty(SSN_TYPE, type);
 		//***********
 		//System.out.println(spatialLayer.getIndex().count());
 		//((RTreeIndexFix)spatialLayer.getIndex()).debugIndexTree();
@@ -323,6 +353,7 @@ public class SSNonGraph implements SSN, ac.technion.geoinfo.ssnTrj.domain.Static
 	
 	public User AddUser() {
 		// TODO Auto-generated method stub
+		//add a fulltext field 
 		return null;
 	}
 

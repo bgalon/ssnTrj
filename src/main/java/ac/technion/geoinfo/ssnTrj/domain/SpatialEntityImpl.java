@@ -1,6 +1,7 @@
 package ac.technion.geoinfo.ssnTrj.domain;
 
 import org.neo4j.gis.spatial.Constants;
+import org.neo4j.graphdb.Node;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.WKTReader;
@@ -12,6 +13,11 @@ public class SpatialEntityImpl extends NodeWarpperImpl implements SpatialEntity,
 	public SpatialEntityImpl(NodeWarpperImpl theNode) throws Exception
 	{
 		super(theNode);
+	}
+	
+	public SpatialEntityImpl(Node theNode) throws Exception
+	{
+		super(new NodeWarpperImpl(theNode));
 	}
 	
 	public String getGeometryAsString() throws Exception {
