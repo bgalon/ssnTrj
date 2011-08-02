@@ -36,5 +36,10 @@ public class SpatialEntityImpl extends NodeWarpperImpl implements SpatialEntity,
 		}
 		return this.geometry;
 	}
-
+	
+//	public String getSpatialId() {
+//		if (underlayingNode.hasProperty(SPATIAL_KEY))
+//			return (String) underlayingNode.getProperty(SPATIAL_KEY);
+//		return null;
+//	}
 }

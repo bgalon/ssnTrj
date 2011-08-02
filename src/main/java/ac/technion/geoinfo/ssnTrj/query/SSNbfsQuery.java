@@ -11,6 +11,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 
 import ac.technion.geoinfo.ssnTrj.SSN;
+import ac.technion.geoinfo.ssnTrj.domain.NodeWarpperImpl;
 import ac.technion.geoinfo.ssnTrj.domain.NodeWrapper;
 
 public class SSNbfsQuery extends AbstractSSNquery {
@@ -54,157 +55,33 @@ public class SSNbfsQuery extends AbstractSSNquery {
 		//condition in a format of "propertyName1 operator1 condition1;propertyName2 operator2 condition2 ..."
 		//for example "name == 'hello' ; sameNumber > 50"
 		//optional operator are : < , > , <= , >= , ==
+		if (relationType.length < 1)
+			throw new Exception("relationType length is 0");
 		if (relationType.length != conditions.length)
 			throw new Exception("conditions length in not equal to relationType length");
 		Set<NodeWrapper> returnSet = new HashSet<NodeWrapper>();
 		for(NodeWrapper tempNodeW: source)
 		{
-			boolean check = true;
+			//boolean check = true;
 			for(int i = 0; i < relationType.length; i++)
 			{
 				Iterable<Relationship> relIter = tempNodeW.getRelationships(relationType[i]);
 				for(Relationship tempRel:relIter)
 				{
-					check = check && CheckRel4Con(tempRel, conditions[i]);
+					if(CheckCond.CheckRel4Con(tempRel, conditions[i]))
+					{
+						returnSet.add(new NodeWarpperImpl(tempRel.getOtherNode(tempNodeW)));
+					}
+					//check = check && CheckRel4Con(tempRel, conditions[i]);
 				}
+				//if (check)
+				//	returnSet.add(relIter);
 			}
-			if (check)
-				returnSet.add(tempNodeW);
 		}
 		return returnSet;
 	}
 	
-	private boolean CheckRel4Con(Relationship theRel, String conditions) throws Exception
-	{
-		//condition in a format of "propertyName1 operator1 condition1;propertyName2 operator2 condition2 ..."
-		//for example "name == 'hello' ; sameNumber > 50"
-		//optional operator are : < , > , <= , >= , ==
-		String[] splitCondition = conditions.split(";");
-		boolean check = true;
-		for (String oneCondition:splitCondition)
-		{
-			int opInd;
-			if ((opInd = oneCondition.indexOf('<')) > 0)
-			{
-				String prop = oneCondition.substring(0, opInd).trim();
-				if (theRel.hasProperty(prop))
-				{
-					String propValue = (String) theRel.getProperty(prop);
-					String comperVal = oneCondition.substring(opInd + 1).trim();
-					if (IsNumber(propValue) && IsNumber(comperVal))
-					{
-						check = check &&  (Double.parseDouble(propValue) < Double.parseDouble(comperVal));
-					}
-					else
-					{
-						throw new Exception("error while evaluate " + oneCondition + ". " + propValue + " or " +
-								" are not a number");
-					}
-				}
-				else
-				{
-					throw new Exception("error while evaluate " + oneCondition + ". the reationship " + theRel.toString() 
-							+ "(from type " + theRel.getType().toString() +")" + " don't have the property " + prop);
-				}
-			}
-			else if ((opInd = oneCondition.indexOf('>')) > 0)
-			{
-				String prop = oneCondition.substring(0, opInd).trim();
-				if (theRel.hasProperty(prop))
-				{
-					String propValue = (String) theRel.getProperty(prop);
-					String comperVal = oneCondition.substring(opInd + 1).trim();
-					if (IsNumber(propValue) && IsNumber(comperVal))
-					{
-						check = check &&  (Double.parseDouble(propValue) > Double.parseDouble(comperVal));
-					}
-					else
-					{
-						throw new Exception("error while evaluate " + oneCondition + ". " + propValue + " or " +
-								" are not a number");
-					}
-				}
-				else
-				{
-					throw new Exception("error while evaluate " + oneCondition + ". the reationship " + theRel.toString() 
-							+ "(from type " + theRel.getType().toString() +")" + " don't have the property " + prop);
-				}
-			}
-			else if ((opInd = oneCondition.indexOf("<=")) > 0)
-			{
-				String prop = oneCondition.substring(0, opInd).trim();
-				if (theRel.hasProperty(prop))
-				{
-					String propValue = (String) theRel.getProperty(prop);
-					String comperVal = oneCondition.substring(opInd + 1).trim();
-					if (IsNumber(propValue) && IsNumber(comperVal))
-					{
-						check = check &&  (Double.parseDouble(propValue) <= Double.parseDouble(comperVal));
-					}
-					else
-					{
-						throw new Exception("error while evaluate " + oneCondition + ". " + propValue + " or " +
-								" are not a number");
-					}
-				}
-				else
-				{
-					throw new Exception("error while evaluate " + oneCondition + ". the reationship " + theRel.toString() 
-							+ "(from type " + theRel.getType().toString() +")" + " don't have the property " + prop);
-				}
-			}
-			else if ((opInd = oneCondition.indexOf(">=")) > 0)
-			{
-				String prop = oneCondition.substring(0, opInd).trim();
-				if (theRel.hasProperty(prop))
-				{
-					String propValue = (String) theRel.getProperty(prop);
-					String comperVal = oneCondition.substring(opInd + 1).trim();
-					if (IsNumber(propValue) && IsNumber(comperVal))
-					{
-						check = check &&  (Double.parseDouble(propValue) >= Double.parseDouble(comperVal));
-					}
-					else
-					{
-						throw new Exception("error while evaluate " + oneCondition + ". " + propValue + " or " +
-								" are not a number");
-					}
-				}
-				else
-				{
-					throw new Exception("error while evaluate " + oneCondition + ". the reationship " + theRel.toString() 
-							+ "(from type " + theRel.getType().toString() +")" + " don't have the property " + prop);
-				}
-			}
-			else if ((opInd = oneCondition.indexOf("==")) > 0)
-			{
-				String prop = oneCondition.substring(0, opInd).trim();
-				if (theRel.hasProperty(prop))
-				{
-					String propValue = (String) theRel.getProperty(prop);
-					String comperVal = oneCondition.substring(opInd + 1).trim();
-					check = check && (propValue.equals(comperVal));
-				}
-				else
-				{
-					throw new Exception("error while evaluate " + oneCondition + ". the reationship " + theRel.toString() 
-							+ "(from type " + theRel.getType().toString() +")" + " don't have the property " + prop);
-				}
-			}
-			else
-			{
-				throw new Exception("error while evaluate " + oneCondition + " oprator not found");
-			}
-		}
-		return check;
-	}
-	
-	private boolean IsNumber(String toTest)
-	{
-		if(toTest.matches("((-|\\+)?[0-9]+(\\.[0-9]+)?)+"))
-			return true;
-		return false;
-	}
+
 
 	@Override
 	public Collection<NodeWrapper> MultiMove(Collection<NodeWrapper> source, RelationshipType[] relationType, String[] conditions, double percentage) {

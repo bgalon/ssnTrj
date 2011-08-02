@@ -53,10 +53,12 @@ public class SSNonGraph implements SSN, Static {
 	private final GraphDatabaseService graphDB;
 	private final SpatialDatabaseService sgDB;
 	private EditableLayer spatialLyr;
+	//private Index<Node> spatialIndex;
+	//private Index<Node> socialIndex;
 	
 	//const for map resolution
 	private final double METER = 8.98315E-06;
-	private final double SEARCH_COLSEST_ROAD = 15 * METER;
+	private final double SEARCH_COLSEST_ROAD = 100 * METER;
 	
 	public SSNonGraph(String path)
 	{
@@ -234,7 +236,7 @@ public class SSNonGraph implements SSN, Static {
 		for(int i = 0; i < needToBeAddedFromDB.size(); i++)
 		{
 			returnedList.add(AddRoadSegment(needToBeAddedFromDB.get(i), spatialLayer, 
-					DBattributes.get(i), DBattributes.get(i)));
+					DBattributes.get(i), DBvalues.get(i)));
 		}
 		
 		//spatialLayer.getIndex().executeSearch(lineStringSearch);
@@ -296,7 +298,7 @@ public class SSNonGraph implements SSN, Static {
 		{
 			throw new Exception("Geometry alrady exsist");
 		}
-		SpatialEntity newSE = new SpatialEntityImpl(new NodeWarpperImpl(spatialLayer.add(theGeom).getGeomNode()));	
+		SpatialEntity newSE = new SpatialEntityImpl(spatialLayer.add(theGeom).getGeomNode());	
 		String fullIndexField = "";
 		//add the attributes 
 		if (attributes.length != values.length)
@@ -312,8 +314,8 @@ public class SSNonGraph implements SSN, Static {
 		//update the index
 		if(!fullIndexField.isEmpty()){
 			fullIndexField = fullIndexField.substring(0, fullIndexField.length() -1);
-			Index<Node> LocationFulltxtInd = graphDB.index().forNodes(SPATIAL_FULLTEXT_INDEX); 
-			LocationFulltxtInd.add(newSE.getNode() , SPATIAL_FULLTEXT_KEY, fullIndexField);
+			Index<Node> spatialIndex = graphDB.index().forNodes(SPATIAL_FULLTEXT_INDEX); 
+			spatialIndex.add(newSE.getNode() , SPATIAL_FULLTEXT_KEY, fullIndexField);
 			newSE.setProperty(FULLTEXT_PROPERTY, fullIndexField);
 		}
 		
@@ -383,6 +385,8 @@ public class SSNonGraph implements SSN, Static {
 			}
 			newUser = new UserImpl(graphDB.createNode());
 			newUser.setProperty(SOCIAL_KEY_INDEX_KEY, uName);
+			newUser.setProperty(SSN_TYPE, USER);
+			socialKeyIndex.add(newUser, SOCIAL_KEY_INDEX_KEY, uName);
 			
 			String fullIndexField = "";
 			//add the attributes 
@@ -391,6 +395,7 @@ public class SSNonGraph implements SSN, Static {
 				throw new Exception("the attributes and the values array are not in the same length");
 			}
 			//update attributes
+			fullIndexField = uName + ";";
 			for(int i = 0; i < attributes.length; i++)
 			{
 				newUser.setProperty(attributes[i], values[i]);
@@ -399,14 +404,12 @@ public class SSNonGraph implements SSN, Static {
 			//update the index
 			if(!fullIndexField.isEmpty()){
 				fullIndexField = fullIndexField.substring(0, fullIndexField.length() -1);
-				Index<Node> userFulltxtInd = graphDB.index().forNodes(SOCIAL_FULLTEXT_INDEX); 
-				userFulltxtInd.add(newUser.getNode() , SOCIAL_FULLTEXT_KEY, fullIndexField);
+				Index<Node> socialIndex = graphDB.index().forNodes(SOCIAL_FULLTEXT_INDEX); 
+				socialIndex.add(newUser.getNode() , SOCIAL_FULLTEXT_KEY, fullIndexField);
 				newUser.setProperty(FULLTEXT_PROPERTY, fullIndexField);
 			}
 			
-			newUser.setProperty(SSN_TYPE, USER);
-			
-			if (relatedUsers!=null){
+			if (relatedUsers != null){
 				for (int i = 0; i < relatedUsers.length; i++) 
 				{
 					String tempUser = relatedUsers[i];
@@ -422,6 +425,7 @@ public class SSNonGraph implements SSN, Static {
 					}
 				}
 			}
+			tx.success();
 		}
 		catch (Exception e) 
 		{
@@ -472,14 +476,20 @@ public class SSNonGraph implements SSN, Static {
 		{
 			throw new Exception("error while create route. start and end are both null");
 		}
-		Node newRoute = sgDB.getDatabase().createNode();
+		if(segments.length < 1)
+		{
+			throw new Exception("error while create route. no segments");
+		}
+		Node newRoute = null;
 		Transaction tx = sgDB.getDatabase().beginTx(); 
 		try
 		{
+			newRoute = sgDB.getDatabase().createNode();
+			newRoute.setProperty(SSN_TYPE, ROUTE);
 			//check if start lead to the first segment
 			if (start != null && chcekConncet(start, segments[0], SpatialRelation.lead_to))
 			{
-				newRoute.createRelationshipTo(segments[0], SpatialRelation.startAt);
+				newRoute.createRelationshipTo(start, SpatialRelation.startAt);
 			}
 			else
 			{
@@ -490,7 +500,8 @@ public class SSNonGraph implements SSN, Static {
 			{
 				if(chcekConncet(segments[i], segments[i+1], SpatialRelation.touch))
 				{
-					newRoute.createRelationshipTo(segments[i], SpatialRelation.touch);
+					Relationship tempRel = newRoute.createRelationshipTo(segments[i], SpatialRelation.include);
+					tempRel.setProperty(SEGMENT_NUMBER, i);
 				}
 				else 
 				{
@@ -498,16 +509,17 @@ public class SSNonGraph implements SSN, Static {
 							" do not conncet to " + segments[i+1]);
 				}
 			}
-			newRoute.createRelationshipTo(segments[segments.length -1], SpatialRelation.touch);
+			Relationship tempRel = newRoute.createRelationshipTo(segments[segments.length -1], SpatialRelation.include);
+			tempRel.setProperty(SEGMENT_NUMBER, segments.length - 1);
 			//check if the last segment lead to end
 			if (end != null && chcekConncet(segments[segments.length -1], end, SpatialRelation.lead_to))
 			{
-				newRoute.createRelationshipTo(segments[segments.length -1], SpatialRelation.endAt);
+				newRoute.createRelationshipTo(end, SpatialRelation.endAt);
 			}
 			else
 			{
-				throw new Exception("error while create route. " + start + 
-						" do not lead to " + segments[0]);
+				throw new Exception("error while create route. " + segments[segments.length -1] + 
+						" do not lead to " + end);
 			}
 			
 			tx.success();
@@ -523,6 +535,8 @@ public class SSNonGraph implements SSN, Static {
 		}
 		return new RouteImpl(newRoute);
 	}
+	
+	//private 
 	
 	private boolean chcekConncet(SpatialEntity se1, SpatialEntity se2, RelationshipType relType)
 	{

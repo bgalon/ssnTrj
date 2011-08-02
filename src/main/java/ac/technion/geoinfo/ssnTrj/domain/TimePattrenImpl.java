@@ -173,6 +173,13 @@ public class TimePattrenImpl implements TimePattren,Static {
 				
 		}
 		
+		public static double intersect(String TP1, String TP2) throws Exception
+		{
+			TimePattren tp1 = new TimePattrenImpl(TP1);
+			TimePattren tp2 = new TimePattrenImpl(TP2);
+			return tp1.intersectDiff(tp2);
+		}
+		
 //		public double IntersectValue(TimePattren otherPatternRe){
 //			//for know the intersection is only for patterns form the same type
 //			//work on intersection and return the calc average. 

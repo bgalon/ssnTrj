@@ -54,14 +54,16 @@ public class ColsestRoadSearch extends AbstractSearch {
 
 	protected void onEnvelopeIntersection(Node geomNode, Envelope geomEnvelope) {
 		Geometry geometry = decode(geomNode);
-		double distance = geometry.distance(other);
-		if (distance < minDistance && geometry.getGeometryType().equalsIgnoreCase("LineString")) {
-			clearResults();
-			minDistance = distance;
-			add(geomNode, geometry);
-		} else if (distance == minDistance) {
-			add(geomNode, geometry);
-		}
+		//if (geometry.intersects(other)){
+			double distance = geometry.distance(other);
+			if (distance < minDistance && geometry.getGeometryType().equalsIgnoreCase("LineString")) {
+				clearResults();
+				minDistance = distance;
+				add(geomNode, geometry);
+			} else if (distance == minDistance) {
+				add(geomNode, geometry);
+			}
+		//}
 	}
 
 	protected Geometry other;

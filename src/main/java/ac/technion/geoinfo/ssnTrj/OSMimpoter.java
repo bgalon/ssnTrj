@@ -446,9 +446,11 @@ public class OSMimpoter {
 			}
 			geometry = geometry.substring(0, geometry.length() - 1) + geomEndStr;
 			
-			String[] attributes = new String[theWay.attributeLst.size()];
-			String[] values = new String[theWay.attributeLst.size()];
-			int i = 0;
+			String[] attributes = new String[theWay.attributeLst.size() + 1];
+			String[] values = new String[theWay.attributeLst.size() + 1];
+			attributes[0] = "osm_id";
+			values[0] = Integer.toString(theWay.getID());
+			int i = 1;
 			for(String tempKey:theWay.attributeLst.keySet())
 			{
 				attributes[i] = "osm_" + tempKey;

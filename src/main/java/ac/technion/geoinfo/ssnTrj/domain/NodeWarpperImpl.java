@@ -156,12 +156,14 @@ public class NodeWarpperImpl implements NodeWrapper,Static {
 		return 0;
 	}
 
-	public String getTrype() {
-		return null;
-	}
-
 	public double getExpected() {
 		return 0;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return getType() + "[" + underlayingNode.getId()+ "]";
 	}
 
 }

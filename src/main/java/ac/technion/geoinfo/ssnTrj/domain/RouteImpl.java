@@ -2,8 +2,9 @@ package ac.technion.geoinfo.ssnTrj.domain;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -19,23 +20,41 @@ public class RouteImpl extends SpatialEntityImpl implements Route {
 		if(!underlayingNode.hasRelationship(SpatialRelation.startAt))
 			return null;
 		return new SpatialEntityImpl(underlayingNode.getSingleRelationship(
-				SpatialRelation.startAt,Direction.OUTGOING).getOtherNode(underlayingNode));
+				SpatialRelation.startAt,Direction.OUTGOING).getEndNode());
 	}
 
 	public SpatialEntity getEnd() throws Exception {
 		if(!underlayingNode.hasRelationship(SpatialRelation.endAt))
 			return null;
 		return new SpatialEntityImpl(underlayingNode.getSingleRelationship(
-				SpatialRelation.endAt,Direction.OUTGOING).getOtherNode(underlayingNode));
+				SpatialRelation.endAt,Direction.OUTGOING).getEndNode());
 	}
 
 	public Collection<SpatialEntity> getSegments() throws Exception {
-		Set<SpatialEntity> returnSet = new HashSet<SpatialEntity>();
+		Map<Integer,SpatialEntity> returnMap = new TreeMap<Integer, SpatialEntity>();
 		Iterable<Relationship> includeIter = underlayingNode.getRelationships(SpatialRelation.include);
 		for(Relationship tempRel:includeIter)
 		{
-			returnSet.add(new SpatialEntityImpl(tempRel.getOtherNode(underlayingNode)));
+			returnMap.put((Integer)tempRel.getProperty(SEGMENT_NUMBER), 
+					new SpatialEntityImpl(tempRel.getOtherNode(underlayingNode)));
 		}
-		return returnSet;
+		return returnMap.values();
+	}
+	
+	public String PrintRoute() throws Exception
+	{
+		String returnStr = "";
+		SpatialEntity tempSE1 = getStart();
+		if (tempSE1 != null )
+			returnStr = tempSE1.toString();
+		for(SpatialEntity tempSE2:getSegments())
+		{
+			returnStr = returnStr + "-->" + tempSE2.toString();
+		}
+		tempSE1 = getEnd();
+		if (tempSE1 != null )
+			returnStr = returnStr + "-->" + tempSE1.toString();
+		
+		return returnStr;
 	}
 }

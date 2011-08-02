@@ -15,22 +15,25 @@ public interface Static {
 	//network option
 	// static final String S
 	
-	//Spatial attributes 
+	//Spatial node attributes 
 	public static final String GEOMETRY = "geometry";
-	
 	public static final String SPATIAL_LAYER = "spatialData";
+	public static final String SPATIAL_KEY = "spatialKey";
+	
+	//Spatial relationship attributes
+	public static final String SEGMENT_NUMBER ="segmentNum";
 	
 	//Spatial indexes
-	public static final String SPATIAL_FULLTEXT_INDEX = "SpatialFullText";
-	public static final String SPATIAL_FULLTEXT_KEY = "SpatialMainKey"; 
+	public static final String SPATIAL_FULLTEXT_INDEX = "spatialFullText";
+	public static final String SPATIAL_FULLTEXT_KEY = "spatialMainKey"; 
 	
 	//Social attributes
 	
 	//Social indexes
-	public static final String SOCIAL_KEY_INDEX = "SocialKey";
-	public static final String SOCIAL_KEY_INDEX_KEY = "uname";
-	public static final String SOCIAL_FULLTEXT_INDEX = "SocialFullText";
-	public static final String SOCIAL_FULLTEXT_KEY = "SocialMainKey";
+	public static final String SOCIAL_KEY_INDEX = "socialKey";
+	public static final String SOCIAL_KEY_INDEX_KEY = "uName";
+	public static final String SOCIAL_FULLTEXT_INDEX = "socialFullText";
+	public static final String SOCIAL_FULLTEXT_KEY = "socialMainKey";
 	
 	//time pattern attributes
 	public static final String TIME_PATTERN_PORP = "timePattren";
