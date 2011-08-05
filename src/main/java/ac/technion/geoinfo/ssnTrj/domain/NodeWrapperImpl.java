@@ -10,11 +10,11 @@ import org.neo4j.graphdb.StopEvaluator;
 import org.neo4j.graphdb.Traverser;
 import org.neo4j.graphdb.Traverser.Order;
 
-public class NodeWarpperImpl implements NodeWrapper,Static {
+public class NodeWrapperImpl implements NodeWrapper,Static {
 
-	final Node underlayingNode;
+	protected final Node underlayingNode;
 	
-	public NodeWarpperImpl(Node theUnderlaying)
+	public NodeWrapperImpl(Node theUnderlaying)
 	{
 		underlayingNode = theUnderlaying;
 	}
@@ -159,6 +159,23 @@ public class NodeWarpperImpl implements NodeWrapper,Static {
 	public double getExpected() {
 		return 0;
 	}
+	
+    @Override
+    public boolean equals( Object obj )
+    {
+        if (obj instanceof NodeWrapperImpl)
+        {
+            //return underlayingNode.equals(((NodeWrapperImpl)obj).underlayingNode);
+        	return (underlayingNode.getId() == ((NodeWrapperImpl)obj).underlayingNode.getId());
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return underlayingNode.hashCode();
+    }
 	
 	@Override
 	public String toString()

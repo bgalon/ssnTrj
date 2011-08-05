@@ -12,7 +12,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 
 import ac.technion.geoinfo.ssnTrj.SSN;
-import ac.technion.geoinfo.ssnTrj.domain.NodeWarpperImpl;
+import ac.technion.geoinfo.ssnTrj.domain.NodeWrapperImpl;
 import ac.technion.geoinfo.ssnTrj.domain.NodeWrapper;
 
 public class SSNdfsQuuery {
@@ -55,7 +55,7 @@ public class SSNdfsQuuery {
 				{
 					if(CheckCond.CheckRel4Con(tempRel, con4This[i]))
 					{
-						NodeWrapper nextNode = new NodeWarpperImpl(tempRel.getOtherNode(source));
+						NodeWrapper nextNode = new NodeWrapperImpl(tempRel.getOtherNode(source));
 						result.add(nextNode);
 						if(!toExtend4This) result.remove(source); //think about the remove operation
 						RecursiveQuery(nextNode, relationType,conditions,toExtend);

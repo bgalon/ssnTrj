@@ -2,7 +2,7 @@ package ac.technion.geoinfo.ssnTrj.domain;
 
 import org.neo4j.graphdb.Node;
 
-public class UserImpl extends NodeWarpperImpl implements User {
+public class UserImpl extends NodeWrapperImpl implements User {
  
 	public UserImpl(Node theNode)
 	{

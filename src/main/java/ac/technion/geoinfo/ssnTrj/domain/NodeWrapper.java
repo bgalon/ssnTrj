@@ -6,4 +6,9 @@ public interface NodeWrapper extends Node {
 	Node getNode();
 	String getType();
 	double getExpected();
+	
+	@Override
+    public boolean equals(Object obj);
+	@Override
+	public int hashCode();
 }

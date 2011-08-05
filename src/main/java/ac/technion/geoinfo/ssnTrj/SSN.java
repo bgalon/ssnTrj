@@ -17,10 +17,9 @@ public interface SSN {
 	List<SpatialEntity> AddLocation(String geom, String[] attributes, Object[] values) throws Exception;
 	User AddUser(String uName, String[] friendsUname, String[] relationType, String[] attributes, String[] values) throws Exception;
 	TimePattren addPattren(User theUser, SpatialEntity theSE, String TimePattrenAsStr, double confident) throws Exception;
-	
 	Route addRoute(SpatialEntity start, SpatialEntity end, SpatialEntity[] segments) throws Exception;
 	
-	void executeSpatialSearch(Search theSearch);
+	void executeSpatialSearch(Search theSearch, String layer) throws Exception;
 	
 	GeometryFactory getGeometryFactory();
 	

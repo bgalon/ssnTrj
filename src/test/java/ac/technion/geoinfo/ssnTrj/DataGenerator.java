@@ -21,7 +21,7 @@ import ac.technion.geoinfo.ssnTrj.query.SSNbfsQuery;
 import ac.technion.geoinfo.ssnTrj.query.SSNquery;
 
 
-public class ObjectsTests {
+public class DataGenerator {
 
 	/**
 	 * @param args
@@ -37,9 +37,15 @@ public class ObjectsTests {
 		try
 		{
 			BuildSaptialTestDB(dbPath);
+			System.out.println("Done Spatial");
+			
 			testSSN = new SSNonGraph(dbPath);
 			UserGenerator uGen = new UserGenerator(testSSN);
 			uGen.GenerateUsers(namesFile, profssionFile, hobbiesFile, 1);
+			System.out.println("Done Social");
+			
+			uGen.GenerateRandomPattenAndRotes(3, 1);
+//			uGen.GenerateHomeWorkPattenAndRotes();
 			
 //			Collection<User> users = BuildSocailTestDB(testSSN);
 //			BuildLifePattern(testSSN,users); 
@@ -88,11 +94,12 @@ public class ObjectsTests {
 //		String osmFileNPath = "C:\\osmData\\Washington-border1.osm";
 		String osmFileNPath = "C:\\osmData\\Washington_varySmall.osm";
 //		String osmFileNPath = "C:\\osmData\\Washington_testCase.osm";
+//		String osmFileNPath = "C:\\osmData\\AmericanUniversity.osm";
 		OSMimpoter myOsmImporter = new OSMimpoter(osmFileNPath,dbPath);
 		myOsmImporter.ImportRoads();
 		myOsmImporter.ImportBulidings();
 		myOsmImporter.Dispose();
-		System.out.println("Done Spatial");
+//		System.out.println("Done Spatial");
 	}
 	
 	private static Collection<User> BuildSocailTestDB(SSN testSSN) throws Exception

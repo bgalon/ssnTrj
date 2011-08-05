@@ -14,10 +14,11 @@ public interface Static {
 
 	//network option
 	// static final String S
+	public static final String SPATIAL_LAYER = "spatialLyr";
+	public static final String ROUTE_LAYER = "routeLyr";
 	
 	//Spatial node attributes 
-	public static final String GEOMETRY = "geometry";
-	public static final String SPATIAL_LAYER = "spatialData";
+	//public static final String GEOMETRY = "geometry";
 	public static final String SPATIAL_KEY = "spatialKey";
 	
 	//Spatial relationship attributes

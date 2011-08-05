@@ -1,9 +1,7 @@
 package ac.technion.geoinfo.ssnTrj.domain;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 import org.neo4j.graphdb.Direction;
@@ -41,7 +39,7 @@ public class RouteImpl extends SpatialEntityImpl implements Route {
 		return returnMap.values();
 	}
 	
-	public String PrintRoute() throws Exception
+	public String RouteAsString() throws Exception
 	{
 		String returnStr = "";
 		SpatialEntity tempSE1 = getStart();

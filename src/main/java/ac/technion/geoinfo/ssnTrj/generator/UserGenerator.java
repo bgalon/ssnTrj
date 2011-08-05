@@ -4,9 +4,11 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -15,10 +17,12 @@ import org.neo4j.kernel.EmbeddedGraphDatabase;
 
 import ac.technion.geoinfo.ssnTrj.domain.TimePattren;
 import ac.technion.geoinfo.ssnTrj.SSN;
-import ac.technion.geoinfo.ssnTrj.domain.NodeWarpperImpl;
+import ac.technion.geoinfo.ssnTrj.domain.NodeWrapperImpl;
 import ac.technion.geoinfo.ssnTrj.domain.NodeWrapper;
+import ac.technion.geoinfo.ssnTrj.domain.Route;
 import ac.technion.geoinfo.ssnTrj.domain.SocialRelation;
 import ac.technion.geoinfo.ssnTrj.domain.SpatialEntity;
+import ac.technion.geoinfo.ssnTrj.domain.SpatialEntityImpl;
 import ac.technion.geoinfo.ssnTrj.domain.TimePattrenImpl;
 import ac.technion.geoinfo.ssnTrj.domain.User;
 import ac.technion.geoinfo.ssnTrj.query.SSNbfsQuery;
@@ -129,9 +133,109 @@ public class UserGenerator {
 			userNameLst.add(ssn.AddUser(uName, friends, friendsRelType, new String[]{"profession","hobbies"},
 					new String[]{profession, hobbies}));
 			//SSNDomain.createUser(graphDB, uName, fName, profession, hobbies, friends);
-			System.out.println(uName + " , " + fName + "has been added");
+			//System.out.println(uName + " , " + fName + "has been added");
 		}
 		return userNameLst;
+	}
+	
+	public Set<Route> GenerateHomeWorkPattenAndRotes() throws Exception
+	{
+		if (userNameLst.isEmpty()) 
+			throw new Exception("the user list in empty. ran userGenerator first");
+		Set<Route> retrunSet = new HashSet<Route>();
+		for(NodeWrapper tempUser:userNameLst){
+			System.out.println();
+			//patterns for person
+			SpatialEntity home = null;
+			SpatialEntity office = null;
+			//night pattern for a house
+			int percent = 1 + ranGen.nextInt(100);
+			if (percent < 97)
+			{
+				String thePattern = makeDailyPatternAsTP(4).toString();
+				double confi = ((double)0.8 + (double)ranGen.nextInt(18)/100);
+				NodeWrapper tempNodew = getRandomLocByType("*building*");
+				if (tempNodew == null) continue;
+				home = new SpatialEntityImpl(tempNodew);
+				
+					ssn.addPattren((User)tempUser, home, thePattern, confi);
+				//SSNDomain.createPattern(graphDB, perStr,locStr , thePattern);
+				System.out.println(tempUser + "---" + thePattern + "---->" + home);
+			}
+			
+			//day pattern for work
+			percent = 1 + ranGen.nextInt(100);
+			int endTime = 13;
+			if (percent < 80){
+				percent = 1 + ranGen.nextInt(100);
+				if (percent < 60){
+					endTime = 18;
+				}
+				String thePattern = makeWorkdayPatternAsTP(7,endTime);
+				double confi = ((double)0.6 + (double)ranGen.nextInt(35)/100);
+				NodeWrapper tempNodew = getRandomLocByType("*building*");
+				if (tempNodew == null) continue;
+				office = new SpatialEntityImpl(tempNodew);
+					ssn.addPattren((User)tempUser, office, thePattern, confi);
+				//SSNDomain.createPattern(graphDB, perStr,locStr , thePattern);
+				System.out.println(tempUser + "---" + thePattern + "---->" + office);
+			}
+			
+			if (home == null || office == null) continue;
+			if (home == office) continue;
+			
+			SpatialEntity[] home2officeSegment = RouteGenerator.routeFind(home, office);
+			Route home2offcieRoute = ssn.addRoute(home, office, home2officeSegment);
+			double confi = ((double)0.6 + (double)ranGen.nextInt(35)/100);
+			TimePattren tempP = ssn.addPattren((User)tempUser, home2offcieRoute,  makeWorkdayPatternAsTP(6,7), confi);
+			System.out.println(tempUser + "---" + tempP.toString() + "---->" + office);
+			retrunSet.add(home2offcieRoute);
+			System.out.println(home2offcieRoute);
+			System.out.println(home2offcieRoute.RouteAsString());
+		}
+		return retrunSet;
+	}
+	
+	public void GenerateRandomPattenAndRotes(int avgNumOfRoute, int std) throws Exception
+	{
+		if (userNameLst.isEmpty()) 
+			throw new Exception("the user list in empty. ran userGenerator first");
+//		Set<Route> retrunSet = new HashSet<Route>();
+		for(NodeWrapper tempUser:userNameLst)
+		{
+			System.out.println();
+			int numOfRoutes4User = avgNumOfRoute - std + ranGen.nextInt(std*2);
+			for (int i = 0; i < numOfRoutes4User; i++)
+			{
+				NodeWrapper startNode = getRandomLocByType("*building*");
+				if (startNode == null) continue;
+				SpatialEntity start = new SpatialEntityImpl(startNode);
+				
+				NodeWrapper endNode = getRandomLocByType("*building*");
+				if (endNode == null) continue;
+				SpatialEntity end = new SpatialEntityImpl(endNode);
+				
+				if(start.equals(end)) continue;
+				SpatialEntity[] theSegments = RouteGenerator.routeFind(start, end);
+				
+				String[] patters = makeFlowedWeeklyPattern();
+				
+				Route returnRoute = ssn.addRoute(start, end, theSegments);
+				
+				ssn.addPattren((User)tempUser, start, patters[0], ((double)0.6 + (double)ranGen.nextInt(40)/100));
+				System.out.println(tempUser + "---" + patters[0] + "---->" + start);
+				
+				ssn.addPattren((User)tempUser, returnRoute, patters[1], ((double)0.6 + (double)ranGen.nextInt(40)/100));
+				System.out.println(returnRoute.RouteAsString());
+				System.out.println(tempUser + "---" + patters[1] + "---->" + returnRoute);
+				
+				ssn.addPattren((User)tempUser, end, patters[2], ((double)0.6 + (double)ranGen.nextInt(40)/100));
+				System.out.println(tempUser + "---" + patters[2] + "---->" + end);
+				
+//				retrunSet.add(returnRoute);
+			}
+		}
+//		return retrunSet;
 	}
 	
 //	public void GeneratePatterns(double k)
@@ -224,7 +328,7 @@ public class UserGenerator {
 		Collection<NodeWrapper> locList = ssnQ.Select("spatial", type);
 		if (locList.isEmpty()) return null;
 		int randomLoc = ranGen.nextInt(locList.size());
-		return ((locList.toArray(new NodeWarpperImpl[0]))[randomLoc]);
+		return ((locList.toArray(new NodeWrapperImpl[0]))[randomLoc]);
 		
 	}
 	
@@ -344,6 +448,41 @@ public class UserGenerator {
 		}
 		stringRe = stringRe.substring(0 ,stringRe.length()-1) + ";" + AddStartEndTime(base);
 		return stringRe;
+	}
+	
+	private String[] makeFlowedWeeklyPattern() throws Exception
+	{
+		Random ranGen = new Random();
+		int numOfDays = 1 + ranGen.nextInt(3);
+		List<Integer> weekDay = new LinkedList<Integer>();
+		for (int i = 1; i <= 7; i++) 
+			weekDay.add(i);
+		int[] tempPatten = new int[numOfDays];
+		for (int i = 0; i < numOfDays; i++){
+			int dayInTheWeek =  ranGen.nextInt(weekDay.size());
+			tempPatten[i] = weekDay.remove(dayInTheWeek).intValue();
+		}
+		Arrays.sort(tempPatten);
+		int percent = 1 + ranGen.nextInt(100);
+		int base;
+		if (percent <= 30)
+			base = 1; //morning
+		else if (percent <= 60)
+			base = 2; //noon
+		else if (percent <= 90)
+			base = 3; //evening
+		else 
+			base = 4; //night
+		String stringRe = "W;";
+		for (int i = 0; i < tempPatten.length; i++){
+			stringRe = stringRe + i + ",";
+		}
+		String[] returnArray = new String[3];
+		int startTime = 6 + ranGen.nextInt(5);
+		returnArray[0] = stringRe.substring(0 ,stringRe.length()-1) + ";" + startTime + ";" + (startTime + 1);
+		returnArray[1] = stringRe.substring(0 ,stringRe.length()-1) + ";" + (startTime + 1) + ";" + (startTime + 2);
+		returnArray[2] = stringRe.substring(0 ,stringRe.length()-1) + ";" + (startTime + 2) + ";" + (startTime + 3);
+		return returnArray;
 	}
 			
 		//*****************************************************************************

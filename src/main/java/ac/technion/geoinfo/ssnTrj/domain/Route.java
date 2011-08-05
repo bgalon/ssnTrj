@@ -9,5 +9,5 @@ public interface Route extends SpatialEntity{
 	
 	Collection<SpatialEntity> getSegments() throws Exception;
 	
-	String PrintRoute() throws Exception;
+	String RouteAsString() throws Exception;
 }

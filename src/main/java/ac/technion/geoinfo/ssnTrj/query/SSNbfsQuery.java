@@ -6,13 +6,18 @@ import java.util.Set;
 
 import javax.management.relation.RelationType;
 
+import org.codehaus.groovy.reflection.handlegen;
+import org.mortbay.util.ajax.Continuation;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 
 import ac.technion.geoinfo.ssnTrj.SSN;
-import ac.technion.geoinfo.ssnTrj.domain.NodeWarpperImpl;
+import ac.technion.geoinfo.ssnTrj.domain.NodeWrapperImpl;
 import ac.technion.geoinfo.ssnTrj.domain.NodeWrapper;
+import ac.technion.geoinfo.ssnTrj.domain.Route;
+import ac.technion.geoinfo.ssnTrj.domain.SpatialEntity;
+import ac.technion.geoinfo.ssnTrj.domain.SpatialRelation;
 
 public class SSNbfsQuery extends AbstractSSNquery {
 
@@ -57,7 +62,7 @@ public class SSNbfsQuery extends AbstractSSNquery {
 		//optional operator are : < , > , <= , >= , ==
 		if (relationType.length < 1)
 			throw new Exception("relationType length is 0");
-		if (relationType.length != conditions.length)
+		if (conditions != null && relationType.length != conditions.length)
 			throw new Exception("conditions length in not equal to relationType length");
 		Set<NodeWrapper> returnSet = new HashSet<NodeWrapper>();
 		for(NodeWrapper tempNodeW: source)
@@ -68,9 +73,17 @@ public class SSNbfsQuery extends AbstractSSNquery {
 				Iterable<Relationship> relIter = tempNodeW.getRelationships(relationType[i]);
 				for(Relationship tempRel:relIter)
 				{
-					if(CheckCond.CheckRel4Con(tempRel, conditions[i]))
+					String Cond;
+					if (conditions == null)
 					{
-						returnSet.add(new NodeWarpperImpl(tempRel.getOtherNode(tempNodeW)));
+						Cond = null;
+					}else
+					{
+						Cond = conditions[i];
+					}
+					if(CheckCond.CheckRel4Con(tempRel, Cond))
+					{
+						returnSet.add(new NodeWrapperImpl(tempRel.getOtherNode(tempNodeW)));
 					}
 					//check = check && CheckRel4Con(tempRel, conditions[i]);
 				}
@@ -111,6 +124,22 @@ public class SSNbfsQuery extends AbstractSSNquery {
 		Set<NodeWrapper> returnSet = new HashSet<NodeWrapper>(source1);
 		returnSet.retainAll(source2);
 		return returnSet;
+	}
+	
+	//public Collection<NodeWrapper>
+	
+	private boolean findRoutesPassThrow(Route R, SpatialEntity A, SpatialEntity B) throws Exception
+	{
+		Set<NodeWrapper> NodeAscollection = new HashSet<NodeWrapper>();
+		NodeAscollection.add(R);
+		Collection<NodeWrapper> startNode = Move(NodeAscollection, new RelationshipType[]{SpatialRelation.startAt}, null);
+		Collection<NodeWrapper> endNode = Move(NodeAscollection, new RelationshipType[]{SpatialRelation.endAt}, null);
+		Collection<NodeWrapper> roadSegment = Move(NodeAscollection, new RelationshipType[]{SpatialRelation.include}, null);
+		Set<NodeWrapper> NearRoadSegment = (Set<NodeWrapper>)Move(roadSegment, new RelationshipType[]{SpatialRelation.lead_to}, null);
+		NearRoadSegment = (Set<NodeWrapper>)Union(Union(startNode, endNode), NearRoadSegment);
+		if (NearRoadSegment.contains((NodeWrapper)A) && NearRoadSegment.contains((NodeWrapper)B))
+			return true;
+		return false;
 	}
 
 }

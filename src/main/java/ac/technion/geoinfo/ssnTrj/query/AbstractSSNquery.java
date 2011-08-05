@@ -14,7 +14,7 @@ import org.neo4j.graphdb.index.Index;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Polygon;
 
-import ac.technion.geoinfo.ssnTrj.domain.NodeWarpperImpl;
+import ac.technion.geoinfo.ssnTrj.domain.NodeWrapperImpl;
 import ac.technion.geoinfo.ssnTrj.domain.SpatialEntityImpl;
 import ac.technion.geoinfo.ssnTrj.domain.Static;
 import ac.technion.geoinfo.ssnTrj.SSN;
@@ -41,7 +41,10 @@ public abstract class AbstractSSNquery implements SSNquery, Static {
 			fullTxtKey = SPATIAL_FULLTEXT_KEY;
 			if (theQuery.toLowerCase().startsWith("in:"))
 			{
-				return SelectByLoction(theQuery.substring(3));
+				int layerInd = theQuery.toLowerCase().indexOf("layer:");
+				String lyr = theQuery.substring(layerInd + 5);
+				String envelope = theQuery.substring(3, layerInd - 1);
+				return SelectByLoction(envelope, lyr);
 			}
 		}else{
 			throw new Exception("network source mast be social or spatial");
@@ -49,12 +52,12 @@ public abstract class AbstractSSNquery implements SSNquery, Static {
 		List<NodeWrapper> returnLst =  new LinkedList<NodeWrapper>();
 		for (Node tempNode:theIndex.query(fullTxtKey , theQuery))
 		{
-			returnLst.add(new NodeWarpperImpl(tempNode));
+			returnLst.add(new NodeWrapperImpl(tempNode));
 		}
 		return returnLst;
 	}
 	
-	private List<NodeWrapper> SelectByLoction(String theEnvelope) throws Exception
+	private List<NodeWrapper> SelectByLoction(String theEnvelope, String lyr) throws Exception
 	{
 		//the theEnvelope = "MaxX,MaxY,MinX,MinY"
 		
@@ -69,7 +72,7 @@ public abstract class AbstractSSNquery implements SSNquery, Static {
 		Polygon other = ssn.getGeometryFactory().createPolygon(ssn.getGeometryFactory().createLinearRing(coordinates),null);
 		SearchInRelation search = new SearchInRelation(other, "T*****T**");
 		
-		ssn.executeSpatialSearch(search);
+		ssn.executeSpatialSearch(search, lyr);
 		List<SpatialDatabaseRecord> result = search.getResults();
 		List<NodeWrapper> retrunLst = new LinkedList<NodeWrapper>();
 		for (SpatialDatabaseRecord tempRec : result)

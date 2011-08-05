@@ -23,11 +23,16 @@ import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 
+import com.vividsolutions.jts.algorithm.distance.DistanceToPoint;
+import com.vividsolutions.jts.algorithm.distance.PointPairDistance;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.io.WKTReader;
+import com.vividsolutions.jts.operation.linemerge.LineMerger;
 
-import ac.technion.geoinfo.ssnTrj.domain.NodeWarpperImpl;
+import ac.technion.geoinfo.ssnTrj.domain.NodeWrapper;
+import ac.technion.geoinfo.ssnTrj.domain.NodeWrapperImpl;
 import ac.technion.geoinfo.ssnTrj.domain.Route;
 import ac.technion.geoinfo.ssnTrj.domain.RouteImpl;
 import ac.technion.geoinfo.ssnTrj.domain.SocialRelation;
@@ -45,7 +50,6 @@ import ac.technion.geoinfo.ssnTrj.geometry.PolygonContainsSearch;
 import ac.technion.geoinfo.ssnTrj.geometry.PolygonWithinSearch;
 import ac.technion.geoinfo.ssnTrj.geometry.RoadIntersectSearch;
 import ac.technion.geoinfo.ssnTrj.geometry.RoadTouchesSearch;
-import ac.technion.geoinfo.ssnTrj.spatial.RTreeIndexFix;
 import ac.technion.geoinfo.ssnTrj.spatial.SsnSpatialLayer;
 
 public class SSNonGraph implements SSN, Static {
@@ -53,6 +57,7 @@ public class SSNonGraph implements SSN, Static {
 	private final GraphDatabaseService graphDB;
 	private final SpatialDatabaseService sgDB;
 	private EditableLayer spatialLyr;
+	private EditableLayer routeLyr;
 	//private Index<Node> spatialIndex;
 	//private Index<Node> socialIndex;
 	
@@ -82,6 +87,15 @@ public class SSNonGraph implements SSN, Static {
 			else
 			{
 				spatialLyr = (EditableLayer)sgDB.getLayer(SPATIAL_LAYER);
+			}
+			
+			if (!sgDB.containsLayer(ROUTE_LAYER))
+			{
+				routeLyr = (EditableLayer)sgDB.createLayer(ROUTE_LAYER, WKTGeometryEncoder.class, SsnSpatialLayer.class);
+			}
+			else
+			{
+				routeLyr = (EditableLayer)sgDB.getLayer(ROUTE_LAYER);
 			}
 			tx.success();
 		}
@@ -116,14 +130,30 @@ public class SSNonGraph implements SSN, Static {
 		return graphDB.index().forNodes(indexName);
 	}
 	
-	public void executeSpatialSearch(Search theSearch)
+	public void executeSpatialSearch(Search theSearch, String lyr) throws Exception
 	{
-		spatialLyr.getIndex().executeSearch(theSearch);
+		if(lyr.equalsIgnoreCase("spatial"))
+		{
+			spatialLyr.getIndex().executeSearch(theSearch);
+		} 
+		else if(lyr.equalsIgnoreCase("route"))
+		{
+			routeLyr.getIndex().executeSearch(theSearch);
+		}
+		else
+		{
+			throw new Exception("worng input in executeSpatialSearch no such layer " + lyr);
+		}
 	}
 	
 	public GeometryFactory getGeometryFactory()
 	{
 		return spatialLyr.getGeometryFactory();
+	}
+	
+	public NodeWrapper getNodeById(long id)
+	{
+		return new NodeWrapperImpl(graphDB.getNodeById(id));
 	}
 	
 	public List<SpatialEntity> AddLocation(String geom, String[] attributes, Object[] values) throws Exception {
@@ -151,7 +181,7 @@ public class SSNonGraph implements SSN, Static {
 		catch (Exception e) {
 			// TODO: handle exception
 			System.out.println(e.getMessage());
-			throw e;
+//			throw e;
 		}
 		finally
 		{
@@ -484,7 +514,8 @@ public class SSNonGraph implements SSN, Static {
 		Transaction tx = sgDB.getDatabase().beginTx(); 
 		try
 		{
-			newRoute = sgDB.getDatabase().createNode();
+//			newRoute = sgDB.getDatabase().createNode();
+			newRoute = routeLyr.add(bulidRouteGeom(start, end, segments)).getGeomNode();
 			newRoute.setProperty(SSN_TYPE, ROUTE);
 			//check if start lead to the first segment
 			if (start != null && chcekConncet(start, segments[0], SpatialRelation.lead_to))
@@ -535,7 +566,6 @@ public class SSNonGraph implements SSN, Static {
 		}
 		return new RouteImpl(newRoute);
 	}
-	
 	//private 
 	
 	private boolean chcekConncet(SpatialEntity se1, SpatialEntity se2, RelationshipType relType)
@@ -547,6 +577,26 @@ public class SSNonGraph implements SSN, Static {
 				return true;
 		}
 		return false;
+	}
+	
+	private Geometry bulidRouteGeom(SpatialEntity start, SpatialEntity end, SpatialEntity[] segments) throws Exception
+	{
+//		Point startPoint = start.getGeometry().getCentroid();
+//		Point endPoint = end.getGeometry().getCentroid();
+//		PointPairDistance ppd = new PointPairDistance(); 
+//		DistanceToPoint.computeDistance(segments[0].getGeometry(), startPoint.getCoordinate(), ppd);
+//		
+//		
+		LineMerger lineMerger = new LineMerger();
+		for(SpatialEntity tempSE:segments)
+		{
+			lineMerger.add(tempSE.getGeometry());
+		}
+		
+		if (lineMerger.getMergedLineStrings().size() != 1)
+			throw new Exception("error while bulid geometry to route, the segment are not connceted");
+		
+		return (Geometry) lineMerger.getMergedLineStrings().iterator().next();
 	}
 	
 	public void Dispose()
