@@ -24,14 +24,19 @@ public class ObjectTest {
 		try
 		{
 			testSSN = new SSNonGraph(dbPath);
-			SSNbfsQuery testQuery = new SSNbfsQuery(testSSN); 
+			SSNquery testQuery = new SSNbfsQuery(testSSN); 
+			Collection<NodeWrapper> reslut = testQuery.Select("spatial", "in:38.91221064,-77.0714901,38.903828545,-77.088699154@layer:spatial");
+			for(NodeWrapper tempNodeW:reslut)
+			{
+				System.out.println(tempNodeW);
+			}
 //			Collection<NodeWrapper> users = testQuery.Select("social", "*Alondra1*"); //user[11]
 //			Collection<NodeWrapper> routes = testQuery.Move(users, new RelationshipType[]{TimePatternRelation.TimePattren}, null);
 //			
 //			Collection<NodeWrapper> A = testQuery.Select(source, theQuery)
-			Route route = new RouteImpl(testSSN.getNodeById(2694));
-			SpatialEntity A = new SpatialEntityImpl(testSSN.getNodeById(690));
-			SpatialEntity B = new SpatialEntityImpl(testSSN.getNodeById(523));
+//			Route route = new RouteImpl(testSSN.getNodeById(2694));
+//			SpatialEntity A = new SpatialEntityImpl(testSSN.getNodeById(690));
+//			SpatialEntity B = new SpatialEntityImpl(testSSN.getNodeById(523));
 //			System.out.println(testQuery.findRoutesPassThrow(route, A, B));
 			
 //			for(NodeWrapper tempNode:routes)

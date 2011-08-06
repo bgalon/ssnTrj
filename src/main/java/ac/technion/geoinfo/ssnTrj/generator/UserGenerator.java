@@ -1,7 +1,9 @@
 package ac.technion.geoinfo.ssnTrj.generator;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -64,10 +66,10 @@ public class UserGenerator {
 		
 		while(!nameList.isEmpty()){
 			int ranName = ranGen.nextInt(nameList.size());
-			int ranSeconedName = ranGen.nextInt(fullNameList.size());
-			for (int k = 1; k <= 1; k++){
-				if ((ranGen.nextInt(100)/100) > l ) 
-					continue;
+			for (int k = 1; k <= l; k++){
+//				if ((ranGen.nextInt(100)/100) > l ) 
+//					continue;
+				int ranSeconedName = ranGen.nextInt(fullNameList.size());
 				String perStr = new String();
 				perStr = nameList.get(ranName) + k + ",";
 				
@@ -99,42 +101,71 @@ public class UserGenerator {
 				perStr = perStr.substring(0, perStr.length()-1) + ")";
 				usedNameList.addAll(friendsList);
 				usedNameList.add(nameList.get(ranName) + k); 
-				persList.add(perStr);
+//				persList.add(perStr);
+				
+				String[] tempSplit = perStr.split("\\(");
+				String[] hoobyData = tempSplit[0].substring(0, tempSplit[0].trim().length()-1).split("\\,");
+				String[] tempFriends = tempSplit[2].trim().substring(0, tempSplit[2].trim().length()-1).split("\\,");
+				String uName = hoobyData[0].trim();
+				String fName = hoobyData[1].trim();
+				String profession = hoobyData[2].trim();
+				String hobbies = tempSplit[1].substring(0, tempSplit[1].trim().length()-2);
+				String[] friends = new String[tempFriends.length];
+				String[] friendsRelType = new String[tempFriends.length];
+				for(int i = 0; i < tempFriends.length; i++ ){
+					friends[i] = tempFriends[i].trim();
+					int ftr = ranGen.nextInt(100);
+					if(ftr < 70)
+					{
+						friendsRelType[i] = "Friend";
+					}
+					else
+					{
+						friendsRelType[i] = "Family";
+					}
+				} 
+				if (friends.length == 0) friends = null;
+				
+				//"uName,fullName,profession,(hobbies),(friendList)"
+				userNameLst.add(ssn.AddUser(uName, friends, friendsRelType, new String[]{"profession","hobbies"},
+						new String[]{profession, hobbies}));
+				//SSNDomain.createUser(graphDB, uName, fName, profession, hobbies, friends);
+				//System.out.println(uName + " , " + fName + "has been added");
 			}
 			nameList.remove(ranName);
 		}
 		
-		for (String tempPer:persList)
-		{
-			String[] tempSplit = tempPer.split("\\(");
-			String[] hoobyData = tempSplit[0].substring(0, tempSplit[0].trim().length()-1).split("\\,");
-			String[] tempFriends = tempSplit[2].trim().substring(0, tempSplit[2].trim().length()-1).split("\\,");
-			String uName = hoobyData[0].trim();
-			String fName = hoobyData[1].trim();
-			String profession = hoobyData[2].trim();
-			String hobbies = tempSplit[1].substring(0, tempSplit[1].trim().length()-2);
-			String[] friends = new String[tempFriends.length];
-			String[] friendsRelType = new String[tempFriends.length];
-			for(int i = 0; i < tempFriends.length; i++ ){
-				friends[i] = tempFriends[i].trim();
-				int ftr = ranGen.nextInt(100);
-				if(ftr < 70)
-				{
-					friendsRelType[i] = "Friend";
-				}
-				else
-				{
-					friendsRelType[i] = "Family";
-				}
-			} 
-			if (friends.length == 0) friends = null;
-			
-			//"uName,fullName,profession,(hobbies),(friendList)"
-			userNameLst.add(ssn.AddUser(uName, friends, friendsRelType, new String[]{"profession","hobbies"},
-					new String[]{profession, hobbies}));
-			//SSNDomain.createUser(graphDB, uName, fName, profession, hobbies, friends);
-			//System.out.println(uName + " , " + fName + "has been added");
-		}
+//		for (String tempPer:persList)
+//		{
+//			String[] tempSplit = tempPer.split("\\(");
+//			String[] hoobyData = tempSplit[0].substring(0, tempSplit[0].trim().length()-1).split("\\,");
+//			String[] tempFriends = tempSplit[2].trim().substring(0, tempSplit[2].trim().length()-1).split("\\,");
+//			String uName = hoobyData[0].trim();
+//			String fName = hoobyData[1].trim();
+//			String profession = hoobyData[2].trim();
+//			String hobbies = tempSplit[1].substring(0, tempSplit[1].trim().length()-2);
+//			String[] friends = new String[tempFriends.length];
+//			String[] friendsRelType = new String[tempFriends.length];
+//			for(int i = 0; i < tempFriends.length; i++ ){
+//				friends[i] = tempFriends[i].trim();
+//				int ftr = ranGen.nextInt(100);
+//				if(ftr < 70)
+//				{
+//					friendsRelType[i] = "Friend";
+//				}
+//				else
+//				{
+//					friendsRelType[i] = "Family";
+//				}
+//			} 
+//			if (friends.length == 0) friends = null;
+//			
+//			//"uName,fullName,profession,(hobbies),(friendList)"
+//			userNameLst.add(ssn.AddUser(uName, friends, friendsRelType, new String[]{"profession","hobbies"},
+//					new String[]{profession, hobbies}));
+//			//SSNDomain.createUser(graphDB, uName, fName, profession, hobbies, friends);
+//			//System.out.println(uName + " , " + fName + "has been added");
+//		}
 		return userNameLst;
 	}
 	
@@ -196,14 +227,15 @@ public class UserGenerator {
 		return retrunSet;
 	}
 	
-	public void GenerateRandomPattenAndRotes(int avgNumOfRoute, int std) throws Exception
+	public void GenerateRandomPattenAndRotes(int avgNumOfRoute, int std, String filePath) throws Exception
 	{
 		if (userNameLst.isEmpty()) 
 			throw new Exception("the user list in empty. ran userGenerator first");
 //		Set<Route> retrunSet = new HashSet<Route>();
+		BufferedWriter out = new BufferedWriter(new FileWriter(filePath));
 		for(NodeWrapper tempUser:userNameLst)
 		{
-			System.out.println();
+//			System.out.println();
 			int numOfRoutes4User = avgNumOfRoute - std + ranGen.nextInt(std*2);
 			for (int i = 0; i < numOfRoutes4User; i++)
 			{
@@ -217,24 +249,34 @@ public class UserGenerator {
 				
 				if(start.equals(end)) continue;
 				SpatialEntity[] theSegments = RouteGenerator.routeFind(start, end);
+				if(theSegments == null) continue;
 				
 				String[] patters = makeFlowedWeeklyPattern();
 				
 				Route returnRoute = ssn.addRoute(start, end, theSegments);
 				
 				ssn.addPattren((User)tempUser, start, patters[0], ((double)0.6 + (double)ranGen.nextInt(40)/100));
-				System.out.println(tempUser + "---" + patters[0] + "---->" + start);
+//				System.out.println(tempUser + "---" + patters[0] + "---->" + start);
+				out.write(tempUser + "---" + patters[0] + "---->" + start);
+				out.newLine();
 				
 				ssn.addPattren((User)tempUser, returnRoute, patters[1], ((double)0.6 + (double)ranGen.nextInt(40)/100));
-				System.out.println(returnRoute.RouteAsString());
-				System.out.println(tempUser + "---" + patters[1] + "---->" + returnRoute);
+//				System.out.println(returnRoute.RouteAsString());
+				out.write(returnRoute.RouteAsString());
+				out.newLine();
+//				System.out.println(tempUser + "---" + patters[1] + "---->" + returnRoute);
+				out.write(tempUser + "---" + patters[1] + "---->" + returnRoute);
+				out.newLine();
 				
 				ssn.addPattren((User)tempUser, end, patters[2], ((double)0.6 + (double)ranGen.nextInt(40)/100));
-				System.out.println(tempUser + "---" + patters[2] + "---->" + end);
-				
+//				System.out.println(tempUser + "---" + patters[2] + "---->" + end);
+				out.write(tempUser + "---" + patters[2] + "---->" + end);
+				out.newLine();
+				out.newLine();
 //				retrunSet.add(returnRoute);
 			}
 		}
+		out.close();
 //		return retrunSet;
 	}
 	

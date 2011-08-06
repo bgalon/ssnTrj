@@ -4,10 +4,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.management.relation.RelationType;
-
-import org.codehaus.groovy.reflection.handlegen;
-import org.mortbay.util.ajax.Continuation;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;

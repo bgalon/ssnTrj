@@ -1,5 +1,6 @@
 package ac.technion.geoinfo.ssnTrj;
 
+import java.lang.management.GarbageCollectorMXBean;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -58,6 +59,7 @@ public class SSNonGraph implements SSN, Static {
 	private final SpatialDatabaseService sgDB;
 	private EditableLayer spatialLyr;
 	private EditableLayer routeLyr;
+	private GeometryFactory geometryFactory;
 	//private Index<Node> spatialIndex;
 	//private Index<Node> socialIndex;
 	
@@ -69,6 +71,18 @@ public class SSNonGraph implements SSN, Static {
 	{
 		graphDB = new EmbeddedGraphDatabase(path);
 		sgDB = new SpatialDatabaseService(graphDB);
+		init();
+	}
+	
+	public SSNonGraph(GraphDatabaseService theGraphDB)
+	{
+		graphDB = theGraphDB;
+		sgDB = new SpatialDatabaseService(graphDB);
+		init();
+	}
+	
+	private void init()
+	{
 		Transaction tx = sgDB.getDatabase().beginTx(); 
 		try
 		{
@@ -125,7 +139,7 @@ public class SSNonGraph implements SSN, Static {
 		return getNodeIndex(SOCIAL_FULLTEXT_INDEX);
 	}
 	
-	private Index<Node> getNodeIndex(String indexName)
+	public Index<Node> getNodeIndex(String indexName)
 	{
 		return graphDB.index().forNodes(indexName);
 	}
@@ -350,6 +364,8 @@ public class SSNonGraph implements SSN, Static {
 		}
 		
 		newSE.setProperty(SSN_TYPE, type);
+		Index<Node> typeIndex = graphDB.index().forNodes(TYPE_INDEX);
+		typeIndex.add(newSE, TYPE_INDEX, type);
 		//***********
 		//System.out.println(spatialLayer.getIndex().count());
 		//((RTreeIndexFix)spatialLayer.getIndex()).debugIndexTree();
@@ -416,6 +432,8 @@ public class SSNonGraph implements SSN, Static {
 			newUser = new UserImpl(graphDB.createNode());
 			newUser.setProperty(SOCIAL_KEY_INDEX_KEY, uName);
 			newUser.setProperty(SSN_TYPE, USER);
+			Index<Node> typeIndex = graphDB.index().forNodes(TYPE_INDEX);
+			typeIndex.add(newUser, TYPE_INDEX, USER);
 			socialKeyIndex.add(newUser, SOCIAL_KEY_INDEX_KEY, uName);
 			
 			String fullIndexField = "";
@@ -517,6 +535,8 @@ public class SSNonGraph implements SSN, Static {
 //			newRoute = sgDB.getDatabase().createNode();
 			newRoute = routeLyr.add(bulidRouteGeom(start, end, segments)).getGeomNode();
 			newRoute.setProperty(SSN_TYPE, ROUTE);
+			Index<Node> typeIndex = graphDB.index().forNodes(TYPE_INDEX);
+			typeIndex.add(newRoute, TYPE_INDEX, ROUTE);
 			//check if start lead to the first segment
 			if (start != null && chcekConncet(start, segments[0], SpatialRelation.lead_to))
 			{

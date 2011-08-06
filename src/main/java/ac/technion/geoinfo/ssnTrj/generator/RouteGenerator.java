@@ -28,6 +28,7 @@ public class RouteGenerator {
 		PathFinder<Path> findShortst = GraphAlgoFactory.shortestPath(
 				Traversal.expanderForTypes(SpatialRelation.touch, Direction.BOTH), 200);
 		Path thePath = findShortst.findSinglePath(startSegment, endSegment);
+		if (thePath == null) return null;
 		SpatialEntity[] returnArray = new SpatialEntityImpl[thePath.length() + 1];
 		int i = 0;
 		for(Node tempNode:thePath.nodes())

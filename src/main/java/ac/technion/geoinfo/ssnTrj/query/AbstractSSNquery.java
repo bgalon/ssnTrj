@@ -7,7 +7,6 @@ import java.util.List;
 import org.neo4j.gis.spatial.SpatialDatabaseRecord;
 import org.neo4j.gis.spatial.query.SearchInRelation;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.index.Index;
 
@@ -41,9 +40,9 @@ public abstract class AbstractSSNquery implements SSNquery, Static {
 			fullTxtKey = SPATIAL_FULLTEXT_KEY;
 			if (theQuery.toLowerCase().startsWith("in:"))
 			{
-				int layerInd = theQuery.toLowerCase().indexOf("layer:");
-				String lyr = theQuery.substring(layerInd + 5);
-				String envelope = theQuery.substring(3, layerInd - 1);
+				int layerInd = theQuery.toLowerCase().indexOf("@layer:");
+				String lyr = theQuery.substring(layerInd + 7);
+				String envelope = theQuery.substring(3, layerInd);
 				return SelectByLoction(envelope, lyr);
 			}
 		}else{

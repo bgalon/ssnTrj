@@ -5,7 +5,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.IndexHits;
 
 import ac.technion.geoinfo.ssnTrj.domain.NodeWrapper;
 import ac.technion.geoinfo.ssnTrj.domain.Route;
@@ -28,23 +31,61 @@ public class DataGenerator {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		final String dbPath = "C:\\neo4j-enterprise-1.4\\data\\graph.db";
+		final String dbPath = "C:\\graphDBEx";
 		final String namesFile = "C:\\Users\\Ben\\Documents\\nameList.txt";
 		final String profssionFile = "C:\\Users\\Ben\\Documents\\profssionList.txt";
 		final String hobbiesFile = "C:\\Users\\Ben\\Documents\\hobbiesList.txt";
 		
-		SSN testSSN = null;
-		try
-		{
-			BuildSaptialTestDB(dbPath);
-			System.out.println("Done Spatial");
+//		SSN testSSN = null;
+//		try
+//		{
+			for(int i = 1; i <= 10; i++)
+			{
+				SSN testSSN = null;
+				try
+				{
+					String path = dbPath + "\\" + i;
+//					BuildSaptialTestDB(path);
+					testSSN = new SSNonGraph(path);
+					System.out.println("start worknig on " + i);
+					UserGenerator uGen = new UserGenerator(testSSN);
+					uGen.GenerateUsers(namesFile, profssionFile, hobbiesFile, i);
+					System.out.println("done soical on " + i);
+					uGen.GenerateRandomPattenAndRotes(i*3, 2,path + "\\routeReslut.txt");
+					System.out.println("done route on " + i);
+					
+					Index<Node> theInd = ((SSNonGraph)testSSN).getNodeIndex("type");
+					IndexHits<Node> indResult = theInd.get("type", "buliding");
+					System.out.println("in db " + i + " there are " + indResult.size() +" bulidings");
+					
+					indResult = theInd.get("type", "roadSegment");
+					System.out.println("in db " + i + " there are " + indResult.size() +" roadSegments");
+					
+					indResult = theInd.get("type", "user");
+					System.out.println("in db " + i + " there are " + indResult.size() +" users");
+					
+					indResult = theInd.get("type", "route");
+					System.out.println("in db " + i + " there are " + indResult.size() +" routes");
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+				finally
+				{
+					if(testSSN != null)
+						testSSN.Dispose();
+				}
+			}
 			
-			testSSN = new SSNonGraph(dbPath);
-			UserGenerator uGen = new UserGenerator(testSSN);
-			uGen.GenerateUsers(namesFile, profssionFile, hobbiesFile, 1);
-			System.out.println("Done Social");
-			
-			uGen.GenerateRandomPattenAndRotes(3, 1);
+//			BuildSaptialTestDB(dbPath);
+//			System.out.println("Done Spatial");
+//			
+//			testSSN = new SSNonGraph(dbPath);
+//			UserGenerator uGen = new UserGenerator(testSSN);
+//			uGen.GenerateUsers(namesFile, profssionFile, hobbiesFile, 1);
+//			System.out.println("Done Social");
+//			
+//			uGen.GenerateRandomPattenAndRotes(3, 1);
 //			uGen.GenerateHomeWorkPattenAndRotes();
 			
 //			Collection<User> users = BuildSocailTestDB(testSSN);
@@ -78,22 +119,22 @@ public class DataGenerator {
 //			{
 //				System.out.println(tempNodeW);
 //			}
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-		finally
-		{
-			if(testSSN != null)
-				testSSN.Dispose();
-		}
+//		}
+//		catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		finally
+//		{
+//			if(testSSN != null)
+//				testSSN.Dispose();
+//		}
 	}
 
 	private static void BuildSaptialTestDB(String dbPath) throws Exception
 	{
 //		String osmFileNPath = "C:\\osmData\\Washington-border1.osm";
-		String osmFileNPath = "C:\\osmData\\Washington_varySmall.osm";
-//		String osmFileNPath = "C:\\osmData\\Washington_testCase.osm";
+//		String osmFileNPath = "C:\\osmData\\Washington_varySmall.osm";
+		String osmFileNPath = "C:\\osmData\\Washington_testCase.osm";
 //		String osmFileNPath = "C:\\osmData\\AmericanUniversity.osm";
 		OSMimpoter myOsmImporter = new OSMimpoter(osmFileNPath,dbPath);
 		myOsmImporter.ImportRoads();

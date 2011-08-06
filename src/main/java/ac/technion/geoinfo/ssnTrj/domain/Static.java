@@ -6,6 +6,7 @@ public interface Static {
 	public static final String FULLTEXT_PROPERTY = "fulTxtProp";
 	
 	//type option
+	public static final String TYPE_INDEX = "type";
 	public static final String ROAD_SEGMENT = "roadSegment";
 	public static final String BULIDING = "buliding";
 	public static final String ROUTE = "route";
