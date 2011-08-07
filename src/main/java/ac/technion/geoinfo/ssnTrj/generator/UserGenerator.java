@@ -15,10 +15,13 @@ import java.util.Set;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 
 import ac.technion.geoinfo.ssnTrj.domain.TimePattren;
 import ac.technion.geoinfo.ssnTrj.SSN;
+import ac.technion.geoinfo.ssnTrj.SSNonGraph;
 import ac.technion.geoinfo.ssnTrj.domain.NodeWrapperImpl;
 import ac.technion.geoinfo.ssnTrj.domain.NodeWrapper;
 import ac.technion.geoinfo.ssnTrj.domain.Route;
@@ -27,6 +30,7 @@ import ac.technion.geoinfo.ssnTrj.domain.SpatialEntity;
 import ac.technion.geoinfo.ssnTrj.domain.SpatialEntityImpl;
 import ac.technion.geoinfo.ssnTrj.domain.TimePattrenImpl;
 import ac.technion.geoinfo.ssnTrj.domain.User;
+import ac.technion.geoinfo.ssnTrj.domain.UserImpl;
 import ac.technion.geoinfo.ssnTrj.query.SSNbfsQuery;
 import ac.technion.geoinfo.ssnTrj.query.SSNquery;
 
@@ -229,8 +233,10 @@ public class UserGenerator {
 	
 	public void GenerateRandomPattenAndRotes(int avgNumOfRoute, int std, String filePath) throws Exception
 	{
-		if (userNameLst.isEmpty()) 
-			throw new Exception("the user list in empty. ran userGenerator first");
+		if (userNameLst == null || userNameLst.isEmpty())
+			fillUserList();
+			//throw new Exception("the user list in empty. ran userGenerator first");
+		
 //		Set<Route> retrunSet = new HashSet<Route>();
 		BufferedWriter out = new BufferedWriter(new FileWriter(filePath));
 		for(NodeWrapper tempUser:userNameLst)
@@ -254,6 +260,7 @@ public class UserGenerator {
 				String[] patters = makeFlowedWeeklyPattern();
 				
 				Route returnRoute = ssn.addRoute(start, end, theSegments);
+				if (returnRoute == null) continue;
 				
 				ssn.addPattren((User)tempUser, start, patters[0], ((double)0.6 + (double)ranGen.nextInt(40)/100));
 //				System.out.println(tempUser + "---" + patters[0] + "---->" + start);
@@ -279,6 +286,18 @@ public class UserGenerator {
 		out.close();
 //		return retrunSet;
 	}
+	
+	private void fillUserList()
+	{
+		userNameLst = new LinkedList<NodeWrapper>();
+		Index<Node> theInd = ((SSNonGraph)ssn).getNodeIndex("type");
+		IndexHits<Node> indResult = theInd.get("type", "user");
+		for(Node tempNode:indResult)
+		{
+			userNameLst.add(new UserImpl(tempNode));
+		}
+	}
+	
 	
 //	public void GeneratePatterns(double k)
 //	{

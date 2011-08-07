@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.xerces.impl.xpath.regex.REUtil;
 import org.neo4j.gis.spatial.EditableLayer;
 import org.neo4j.gis.spatial.EditableLayerImpl;
 import org.neo4j.gis.spatial.RTreeIndex;
@@ -500,7 +501,11 @@ public class SSNonGraph implements SSN, Static {
 		Transaction tx = sgDB.getDatabase().beginTx(); 
 		try
 		{
-			Relationship newTp = theUser.createRelationshipTo(theSE, TimePatternRelation.TimePattren);
+			Relationship newTp = null;
+			if(theSE.getType().equals(ROUTE))
+				newTp = theUser.createRelationshipTo(theSE, TimePatternRelation.tpToRoute);
+			if(theSE.getType().equals(BULIDING) || theSE.getType().equals(SPATIAL_GROUP))
+				newTp = theUser.createRelationshipTo(theSE, TimePatternRelation.tpToSpatialEntity);
 			newTp.setProperty(TIME_PATTERN_PORP, TimePattrenAsStr);
 			newTp.setProperty(CONFIDENT_PROP, confident);
 			theTP = new TimePattrenImpl(newTp);
@@ -533,7 +538,8 @@ public class SSNonGraph implements SSN, Static {
 		try
 		{
 //			newRoute = sgDB.getDatabase().createNode();
-			newRoute = routeLyr.add(bulidRouteGeom(start, end, segments)).getGeomNode();
+			Geometry routeGeom = bulidRouteGeom(start, end, segments);
+			newRoute = routeLyr.add(routeGeom).getGeomNode();
 			newRoute.setProperty(SSN_TYPE, ROUTE);
 			Index<Node> typeIndex = graphDB.index().forNodes(TYPE_INDEX);
 			typeIndex.add(newRoute, TYPE_INDEX, ROUTE);
@@ -578,12 +584,14 @@ public class SSNonGraph implements SSN, Static {
 		catch (Exception e) {
 			// TODO: handle exception
 			System.out.println(e.getMessage());
-			throw e;
+			newRoute = null;
+//			throw e;
 		}
 		finally
 		{
 			tx.finish();
 		}
+		if (newRoute == null) return null;
 		return new RouteImpl(newRoute);
 	}
 	//private 

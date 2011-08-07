@@ -7,6 +7,9 @@ public interface NodeWrapper extends Node {
 	String getType();
 	double getExpected();
 	
+	void addLaed();
+	int getLeads();
+	
 	@Override
     public boolean equals(Object obj);
 	@Override

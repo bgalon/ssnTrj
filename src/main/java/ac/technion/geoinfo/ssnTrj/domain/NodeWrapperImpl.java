@@ -13,12 +13,22 @@ import org.neo4j.graphdb.Traverser.Order;
 public class NodeWrapperImpl implements NodeWrapper,Static {
 
 	protected final Node underlayingNode;
+	private int leads;
 	
 	public NodeWrapperImpl(Node theUnderlaying)
 	{
 		underlayingNode = theUnderlaying;
+		leads = 1;
 	}
 	
+	public void addLaed() {
+		leads++;
+	}
+
+	public int getLeads() {
+		return leads;
+	}
+
 	public Node getNode()
 	{
 		return underlayingNode;
@@ -182,5 +192,4 @@ public class NodeWrapperImpl implements NodeWrapper,Static {
 	{
 		return getType() + "[" + underlayingNode.getId()+ "]";
 	}
-
 }

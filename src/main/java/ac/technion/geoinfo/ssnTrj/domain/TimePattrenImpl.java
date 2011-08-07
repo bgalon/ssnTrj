@@ -16,7 +16,7 @@ public class TimePattrenImpl implements TimePattren,Static {
 		
 		public TimePattrenImpl(Relationship theRel) throws Exception
 		{
-			if(!theRel.isType(TimePatternRelation.TimePattren))
+			if(!theRel.isType(TimePatternRelation.tpToRoute) && !theRel.isType(TimePatternRelation.tpToSpatialEntity))
 				throw new Exception("the relationship is not timepattren type");
 			if(theRel.hasProperty(TIME_PATTERN_PORP))
 			{

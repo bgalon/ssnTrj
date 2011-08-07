@@ -31,7 +31,7 @@ public class DataGenerator {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		final String dbPath = "C:\\graphDBEx";
+		final String dbPath = "C:\\graphDBEx\\1";
 		final String namesFile = "C:\\Users\\Ben\\Documents\\nameList.txt";
 		final String profssionFile = "C:\\Users\\Ben\\Documents\\profssionList.txt";
 		final String hobbiesFile = "C:\\Users\\Ben\\Documents\\hobbiesList.txt";
@@ -39,19 +39,22 @@ public class DataGenerator {
 //		SSN testSSN = null;
 //		try
 //		{
-			for(int i = 1; i <= 10; i++)
+			for(int i = 8; i <= 10; i++)
 			{
+//				if (i==3) continue;
 				SSN testSSN = null;
 				try
 				{
-					String path = dbPath + "\\" + i;
+					String path = dbPath + "_" + 1 + "_" + i;
 //					BuildSaptialTestDB(path);
 					testSSN = new SSNonGraph(path);
-					System.out.println("start worknig on " + i);
+					System.out.println("start worknig on " + i + " at path: " + path);
 					UserGenerator uGen = new UserGenerator(testSSN);
-					uGen.GenerateUsers(namesFile, profssionFile, hobbiesFile, i);
-					System.out.println("done soical on " + i);
-					uGen.GenerateRandomPattenAndRotes(i*3, 2,path + "\\routeReslut.txt");
+					
+//					uGen.GenerateUsers(namesFile, profssionFile, hobbiesFile, i);
+//					System.out.println("done soical on " + i);
+					
+					uGen.GenerateRandomPattenAndRotes(i, 1, path + "\\routeReslut.txt");
 					System.out.println("done route on " + i);
 					
 					Index<Node> theInd = ((SSNonGraph)testSSN).getNodeIndex("type");
