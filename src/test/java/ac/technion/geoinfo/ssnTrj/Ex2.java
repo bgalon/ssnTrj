@@ -11,7 +11,6 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 
 import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
 
 import ac.technion.geoinfo.ssnTrj.domain.NodeWrapper;
 import ac.technion.geoinfo.ssnTrj.domain.NodeWrapperImpl;
@@ -24,15 +23,15 @@ import ac.technion.geoinfo.ssnTrj.query.SSNquery;
 
 public class Ex2 {
 
-	private static final int MAX_I = 8;
+	private static final int MAX_I = 4;
 	private static final int MAX_J = 20;
 	private static final int MAX_K = 10;
 	private static final Random ranGen = new Random();
 	
 	public static void main(String[] args) {
-		final String dbPath = "C:\\graphDBEx\\1";
+		final String dbPath = "C:\\graphDBEx\\2";
 		System.out.println("Start ex2");
-		for(int i = 1; i <= MAX_I; i++)
+		for(int i = MAX_I; i >= 1 ; i--)
 		{
 			SSN testSSN = null;
 			String path = dbPath + "_" + 1 + "_" + i;
@@ -49,11 +48,10 @@ public class Ex2 {
 					SpatialEntity B = getRandomLocByType("*building*", testQury);
 					for (int k = 0; k < MAX_K; k++)
 					{
-						System.out.println("Social --- > Spatial");
+//						System.out.println("Social --- > Spatial");
 						long ranTime = FindLocPassByUser(ranUser, A, B, testQury);
 						result[j][k] = ranTime;
-//						System.osut.println(ranTime);
-						System.out.println("Spatial --- > Social");
+//						System.out.println("Spatial --- > Social");
 						ranTime = FindLocPassByUser2(ranUser, A, B, testQury);
 						result2[j][k] = ranTime;
 					}
@@ -94,12 +92,12 @@ public class Ex2 {
 		Collection<NodeWrapper> q3 = ((SSNbfsQuery)query).RoutesPassThrow(q2, A, B);
 		long elapsedTime = System.nanoTime() - start;
 		
-		System.out.println(theUser);
-		System.out.println(A);
-		System.out.println(B);
-		System.out.println(q1);
-		System.out.println(q2);
-		System.out.println(q3);
+//		System.out.println(theUser);
+//		System.out.println(A);
+//		System.out.println(B);
+//		System.out.println(q1);
+//		System.out.println(q2);
+//		System.out.println(q3);
 		
 		return elapsedTime;
 	}
@@ -119,14 +117,14 @@ public class Ex2 {
 		Collection<NodeWrapper> q5 = query.Intersect(q4, q2);
 		long elapsedTime = System.nanoTime() - start;
 		
-		System.out.println(theUser);
-		System.out.println(A);
-		System.out.println(B);
-		System.out.println(q1);
-		System.out.println(q2);
-		System.out.println(q3);
-		System.out.println(q4);
-		System.out.println(q5);
+//		System.out.println(theUser);
+//		System.out.println(A);
+//		System.out.println(B);
+//		System.out.println(q1);
+//		System.out.println(q2);
+//		System.out.println(q3);
+//		System.out.println(q4);
+//		System.out.println(q5);
 		
 		return elapsedTime;
 	}

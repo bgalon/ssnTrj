@@ -22,8 +22,8 @@ import ac.technion.geoinfo.ssnTrj.query.SSNquery;
 public class Ex1 implements Static {
 
 	private static final int MAX_I = 8;
-	private static final int MAX_J = 20;
-	private static final int MAX_K = 10;
+	private static final int MAX_J = 100;
+	private static final int MAX_K = 80;
 	/**
 	 * @param args
 	 */
@@ -44,7 +44,7 @@ public class Ex1 implements Static {
 					NodeWrapper ranUser = getRandomUser(testSSN);
 					for (int k = 0; k < MAX_K; k++)
 					{
-						System.out.println("i=" + i + ", j=" + j + ", k=" + k);
+//						System.out.println("i=" + i + ", j=" + j + ", k=" + k);
 						
 						long ranTime =  FindSimiler(ranUser, testQury);
 						result[j][k] = ranTime;
@@ -58,6 +58,7 @@ public class Ex1 implements Static {
 						System.out.print(result[j][k] + ",");
 					System.out.println();
 				}
+				System.gc();
 			}
 			catch (Exception e) {
 				e.printStackTrace();
@@ -82,11 +83,11 @@ public class Ex1 implements Static {
 		Collection<NodeWrapper> q4 = query.Move(q3, new RelationshipType[]{TimePatternRelation.tpToRoute},null);
 		long elapsedTime = System.nanoTime() - start;
 		
-		System.out.println(theUser);
-		System.out.println(q1);
-		System.out.println(q2);
-		System.out.println(q3);
-		System.out.println(q4);
+//		System.out.println(theUser);
+//		System.out.println(q1);
+//		System.out.println(q2);
+//		System.out.println(q3);
+//		System.out.println(q4);
 		
 		return elapsedTime;
 	}

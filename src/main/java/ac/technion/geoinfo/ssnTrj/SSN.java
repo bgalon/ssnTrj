@@ -19,6 +19,8 @@ public interface SSN {
 	TimePattren addPattren(User theUser, SpatialEntity theSE, String TimePattrenAsStr, double confident) throws Exception;
 	Route addRoute(SpatialEntity start, SpatialEntity end, SpatialEntity[] segments) throws Exception;
 	
+	
+	
 	void executeSpatialSearch(Search theSearch, String layer) throws Exception;
 	
 	GeometryFactory getGeometryFactory();
