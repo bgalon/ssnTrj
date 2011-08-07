@@ -39,7 +39,7 @@ public class DataGenerator {
 //		SSN testSSN = null;
 //		try
 //		{
-			for(int i = 8; i <= 10; i++)
+			for(int i = 1; i <= 10; i++)
 			{
 //				if (i==3) continue;
 				SSN testSSN = null;
@@ -54,8 +54,8 @@ public class DataGenerator {
 //					uGen.GenerateUsers(namesFile, profssionFile, hobbiesFile, i);
 //					System.out.println("done soical on " + i);
 					
-					uGen.GenerateRandomPattenAndRotes(i, 1, path + "\\routeReslut.txt");
-					System.out.println("done route on " + i);
+//					uGen.GenerateRandomPattenAndRotes(i, 1, path + "\\routeReslut.txt");
+//					System.out.println("done route on " + i);
 					
 					Index<Node> theInd = ((SSNonGraph)testSSN).getNodeIndex("type");
 					IndexHits<Node> indResult = theInd.get("type", "buliding");

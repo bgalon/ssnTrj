@@ -24,27 +24,53 @@ import ac.technion.geoinfo.ssnTrj.query.SSNquery;
 
 public class Ex2 {
 
+	private static final int MAX_I = 8;
+	private static final int MAX_J = 20;
+	private static final int MAX_K = 10;
 	private static final Random ranGen = new Random();
 	
 	public static void main(String[] args) {
 		final String dbPath = "C:\\graphDBEx\\1";
-		for(int i = 5; i <= 5; i++)
+		System.out.println("Start ex2");
+		for(int i = 1; i <= MAX_I; i++)
 		{
 			SSN testSSN = null;
+			String path = dbPath + "_" + 1 + "_" + i;
+			System.out.println(path);
 			try
 			{
-				String path = dbPath + "_" + 1 + "_" + i;
 				testSSN = new SSNonGraph(path);
-				NodeWrapper ranUser = getRandomUser(testSSN);
 				SSNquery testQury = new SSNbfsQuery(testSSN);
-				SpatialEntity A = getRandomLocByType("*building*", testQury);
-				SpatialEntity B = getRandomLocByType("*building*", testQury);
+				long[][] result = new long[MAX_J][MAX_K];
+				long[][] result2 = new long[MAX_J][MAX_K];
+				for(int j = 0; j < MAX_J; j++ ){
+					NodeWrapper ranUser = getRandomUser(testSSN);
+					SpatialEntity A = getRandomLocByType("*building*", testQury);
+					SpatialEntity B = getRandomLocByType("*building*", testQury);
+					for (int k = 0; k < MAX_K; k++)
+					{
+						System.out.println("Social --- > Spatial");
+						long ranTime = FindLocPassByUser(ranUser, A, B, testQury);
+						result[j][k] = ranTime;
+//						System.osut.println(ranTime);
+						System.out.println("Spatial --- > Social");
+						ranTime = FindLocPassByUser2(ranUser, A, B, testQury);
+						result2[j][k] = ranTime;
+					}
+				}
+				System.out.println("Social --- > Spatial");
+				for(int j = 0; j < MAX_J; j++){
+					for (int k = 0; k < MAX_K; k++)
+						System.out.print(result[j][k] + ",");
+					System.out.println();
+				}
+				System.out.println("Spatial --- > Social");
+				for(int j = 0; j < MAX_J; j++){
+					for (int k = 0; k < MAX_K; k++)
+						System.out.print(result2[j][k] + ",");
+					System.out.println();
+				}
 				
-				long ranTime = FindLocPassByUser(ranUser, A, B, testQury);
-				System.out.println(ranTime);
-				
-				ranTime = FindLocPassByUser(ranUser, A, B, testQury);
-				System.out.println(ranTime);
 			}
 			catch (Exception e) {
 				e.printStackTrace();
@@ -55,6 +81,7 @@ public class Ex2 {
 					testSSN.Dispose();
 			}
 		}
+		System.out.println("Done ex2");
 	}
 	
 	private static long FindLocPassByUser(NodeWrapper theUser, SpatialEntity A, SpatialEntity B, SSNquery query) throws Exception
@@ -77,25 +104,32 @@ public class Ex2 {
 		return elapsedTime;
 	}
 	
-//	private static long FindLocPassByUser2(NodeWrapper theUser, SpatialEntity A, SpatialEntity B, SSNquery query) throws Exception
-//	{
-//		Set<NodeWrapper> source = new HashSet<NodeWrapper>();
-//		source.add(theUser);
-//		long start = System.nanoTime();
-//		Envelope tempEnv = (A.getGeometry().union(B.getGeometry())).getEnvelopeInternal();
-//		
-//		
-//		long elapsedTime = System.nanoTime() - start;
-//		
-//		System.out.println(theUser);
-//		System.out.println(A);
-//		System.out.println(B);
-//		System.out.println(q1);
-//		System.out.println(q2);
-//		System.out.println(q3);
-//		
-//		return elapsedTime;
-//	}
+	private static long FindLocPassByUser2(NodeWrapper theUser, SpatialEntity A, SpatialEntity B, SSNquery query) throws Exception
+	{
+		Set<NodeWrapper> source = new HashSet<NodeWrapper>();
+		source.add(theUser);
+		long start = System.nanoTime();
+		Envelope tempEnv = (A.getGeometry().union(B.getGeometry())).getEnvelopeInternal();
+		//the theEnvelope = "MaxX,MaxY,MinX,MinY"
+		String envASstring = tempEnv.getMaxX() + "," + tempEnv.getMaxY() + "," + tempEnv.getMinX() + "," + tempEnv.getMinY();
+		Collection<NodeWrapper> q1 = query.Select("spatial", "in:" + envASstring + "@layer:route");
+		Collection<NodeWrapper> q2 = ((SSNbfsQuery)query).RoutesPassThrow(q1, A, B);
+		Collection<NodeWrapper> q3 = query.Move(source, new RelationshipType[]{SocialRelation.Family, SocialRelation.Friend},null);
+		Collection<NodeWrapper> q4 = query.Move(q3, new RelationshipType[]{TimePatternRelation.tpToRoute},null);
+		Collection<NodeWrapper> q5 = query.Intersect(q4, q2);
+		long elapsedTime = System.nanoTime() - start;
+		
+		System.out.println(theUser);
+		System.out.println(A);
+		System.out.println(B);
+		System.out.println(q1);
+		System.out.println(q2);
+		System.out.println(q3);
+		System.out.println(q4);
+		System.out.println(q5);
+		
+		return elapsedTime;
+	}
 	
 	
 	private static SpatialEntity getRandomLocByType(String type,SSNquery ssnQ) throws Exception

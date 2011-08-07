@@ -193,6 +193,12 @@ public class SSNbfsQuery extends AbstractSSNquery {
 
 	@Override
 	public Collection<NodeWrapper> Intersect(Collection<NodeWrapper> source1, Collection<NodeWrapper> source2) throws Exception {
+		if (source1.isEmpty() && source2.isEmpty())
+			return new HashSet<NodeWrapper>();
+		if (source1.isEmpty() && !source2.isEmpty())
+			return source2;
+		if (!source1.isEmpty() && source2.isEmpty())
+			return source1;
 		if (!source2.iterator().next().getType().equals(source1.iterator().next().getType())) throw new Exception("the input list are not of the same type, Union Error");
 		Set<NodeWrapper> returnSet = new HashSet<NodeWrapper>(source1);
 		returnSet.retainAll(source2);

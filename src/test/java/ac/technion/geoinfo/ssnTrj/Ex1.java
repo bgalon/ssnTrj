@@ -21,24 +21,43 @@ import ac.technion.geoinfo.ssnTrj.query.SSNquery;
 
 public class Ex1 implements Static {
 
+	private static final int MAX_I = 8;
+	private static final int MAX_J = 20;
+	private static final int MAX_K = 10;
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		final String dbPath = "C:\\graphDBEx\\1";
-		for(int i = 5; i <= 5; i++)
+		System.out.println("Start ex1");
+		for(int i = 1; i <= MAX_I; i++)
 		{
 			SSN testSSN = null;
+			String path = dbPath + "_" + 1 + "_" + i;
+			System.out.println(path);
 			try
 			{
-				String path = dbPath + "_" + 1 + "_" + i;
 				testSSN = new SSNonGraph(path);
-				NodeWrapper ranUser = getRandomUser(testSSN);
 				SSNquery testQury = new SSNbfsQuery(testSSN);
-				long ranTime =  FindSimiler(ranUser, testQury);
-				System.out.println(ranTime);
-				ranTime =  FindSimiler(ranUser, testQury);
-				System.out.println(ranTime);
+				long[][] result = new long[MAX_J][MAX_K];
+				for(int j = 0; j < MAX_J; j++ ){
+					NodeWrapper ranUser = getRandomUser(testSSN);
+					for (int k = 0; k < MAX_K; k++)
+					{
+						System.out.println("i=" + i + ", j=" + j + ", k=" + k);
+						
+						long ranTime =  FindSimiler(ranUser, testQury);
+						result[j][k] = ranTime;
+	//					System.out.println(ranTime);
+	//					ranTime =  FindSimiler(ranUser, testQury);
+	//					System.out.println(ranTime);
+					}
+				}
+				for(int j = 0; j < MAX_J; j++){
+					for (int k = 0; k < MAX_K; k++)
+						System.out.print(result[j][k] + ",");
+					System.out.println();
+				}
 			}
 			catch (Exception e) {
 				e.printStackTrace();
@@ -49,7 +68,7 @@ public class Ex1 implements Static {
 					testSSN.Dispose();
 			}
 		}
-		
+		System.out.println("Done ex1");
 	}
 	
 	private static long FindSimiler(NodeWrapper theUser, SSNquery query) throws Exception
