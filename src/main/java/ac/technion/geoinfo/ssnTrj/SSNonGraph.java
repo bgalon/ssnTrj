@@ -42,8 +42,8 @@ import ac.technion.geoinfo.ssnTrj.domain.SpatialEntity;
 import ac.technion.geoinfo.ssnTrj.domain.SpatialEntityImpl;
 import ac.technion.geoinfo.ssnTrj.domain.SpatialRelation;
 import ac.technion.geoinfo.ssnTrj.domain.TimePatternRelation;
-import ac.technion.geoinfo.ssnTrj.domain.TimePattren;
-import ac.technion.geoinfo.ssnTrj.domain.TimePattrenImpl;
+import ac.technion.geoinfo.ssnTrj.domain.TimePattern;
+import ac.technion.geoinfo.ssnTrj.domain.TimePatternImpl;
 import ac.technion.geoinfo.ssnTrj.domain.User;
 import ac.technion.geoinfo.ssnTrj.domain.Static;
 import ac.technion.geoinfo.ssnTrj.domain.UserImpl;
@@ -493,9 +493,9 @@ public class SSNonGraph implements SSN, Static {
 		return user1.createRelationshipTo(user2, rlationType);
 	}
 	
-	public TimePattren addPattren(User theUser, SpatialEntity theSE, String TimePattrenAsStr, double confident) throws Exception
+	public TimePattern addPattren(User theUser, SpatialEntity theSE, String TimePattrenAsStr, double confident) throws Exception
 	{
-		TimePattren theTP;
+		TimePattern theTP;
 		if(confident < 0 || confident > 1)
 			throw new Exception("con't create time patttren, the confident value is out of range");
 		Transaction tx = sgDB.getDatabase().beginTx(); 
@@ -508,7 +508,7 @@ public class SSNonGraph implements SSN, Static {
 				newTp = theUser.createRelationshipTo(theSE, TimePatternRelation.tpToSpatialEntity);
 			newTp.setProperty(TIME_PATTERN_PORP, TimePattrenAsStr);
 			newTp.setProperty(CONFIDENT_PROP, confident);
-			theTP = new TimePattrenImpl(newTp);
+			theTP = new TimePatternImpl(newTp);
 			tx.success();
 		}
 		catch (Exception e) {

@@ -2,7 +2,7 @@ package ac.technion.geoinfo.ssnTrj.query;
 
 import org.neo4j.graphdb.Relationship;
 
-import ac.technion.geoinfo.ssnTrj.domain.TimePattrenImpl;
+import ac.technion.geoinfo.ssnTrj.domain.TimePatternImpl;
 
 final class CheckCond {
 	
@@ -134,7 +134,7 @@ final class CheckCond {
 					String comperVal = oneCondition.substring(opInd + 5).trim();
 					if (IsNumber(propValue) && IsNumber(comperVal))
 					{
-						check = check &&  (TimePattrenImpl.intersect(propValue,comperVal) > 0);
+						check = check &&  (TimePatternImpl.intersect(propValue,comperVal) > 0);
 					}
 					else
 					{

@@ -29,6 +29,7 @@ public class Ex1 implements Static {
 	 */
 	public static void main(String[] args) {
 		final String dbPath = "C:\\graphDBEx\\1";
+		
 		System.out.println("Start ex1");
 		for(int i = 1; i <= MAX_I; i++)
 		{

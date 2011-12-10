@@ -19,7 +19,7 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 
-import ac.technion.geoinfo.ssnTrj.domain.TimePattren;
+import ac.technion.geoinfo.ssnTrj.domain.TimePattern;
 import ac.technion.geoinfo.ssnTrj.SSN;
 import ac.technion.geoinfo.ssnTrj.SSNonGraph;
 import ac.technion.geoinfo.ssnTrj.domain.NodeWrapperImpl;
@@ -28,7 +28,7 @@ import ac.technion.geoinfo.ssnTrj.domain.Route;
 import ac.technion.geoinfo.ssnTrj.domain.SocialRelation;
 import ac.technion.geoinfo.ssnTrj.domain.SpatialEntity;
 import ac.technion.geoinfo.ssnTrj.domain.SpatialEntityImpl;
-import ac.technion.geoinfo.ssnTrj.domain.TimePattrenImpl;
+import ac.technion.geoinfo.ssnTrj.domain.TimePatternImpl;
 import ac.technion.geoinfo.ssnTrj.domain.User;
 import ac.technion.geoinfo.ssnTrj.domain.UserImpl;
 import ac.technion.geoinfo.ssnTrj.query.SSNbfsQuery;
@@ -222,7 +222,7 @@ public class UserGenerator {
 			SpatialEntity[] home2officeSegment = RouteGenerator.routeFind(home, office);
 			Route home2offcieRoute = ssn.addRoute(home, office, home2officeSegment);
 			double confi = ((double)0.6 + (double)ranGen.nextInt(35)/100);
-			TimePattren tempP = ssn.addPattren((User)tempUser, home2offcieRoute,  makeWorkdayPatternAsTP(6,7), confi);
+			TimePattern tempP = ssn.addPattren((User)tempUser, home2offcieRoute,  makeWorkdayPatternAsTP(6,7), confi);
 			System.out.println(tempUser + "---" + tempP.toString() + "---->" + office);
 			retrunSet.add(home2offcieRoute);
 			System.out.println(home2offcieRoute);

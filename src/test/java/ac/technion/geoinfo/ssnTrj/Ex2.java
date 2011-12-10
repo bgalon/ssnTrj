@@ -23,13 +23,13 @@ import ac.technion.geoinfo.ssnTrj.query.SSNquery;
 
 public class Ex2 {
 
-	private static final int MAX_I = 4;
-	private static final int MAX_J = 20;
-	private static final int MAX_K = 10;
+	private static final int MAX_I = 8;
+	private static final int MAX_J = 100;
+	private static final int MAX_K = 80;
 	private static final Random ranGen = new Random();
 	
 	public static void main(String[] args) {
-		final String dbPath = "C:\\graphDBEx\\2";
+		final String dbPath = "C:\\graphDBEx\\1";
 		System.out.println("Start ex2");
 		for(int i = MAX_I; i >= 1 ; i--)
 		{
@@ -40,7 +40,7 @@ public class Ex2 {
 			{
 				testSSN = new SSNonGraph(path);
 				SSNquery testQury = new SSNbfsQuery(testSSN);
-				long[][] result = new long[MAX_J][MAX_K];
+//				long[][] result = new long[MAX_J][MAX_K];
 				long[][] result2 = new long[MAX_J][MAX_K];
 				for(int j = 0; j < MAX_J; j++ ){
 					NodeWrapper ranUser = getRandomUser(testSSN);
@@ -49,19 +49,20 @@ public class Ex2 {
 					for (int k = 0; k < MAX_K; k++)
 					{
 //						System.out.println("Social --- > Spatial");
-						long ranTime = FindLocPassByUser(ranUser, A, B, testQury);
-						result[j][k] = ranTime;
+//						long ranTime = FindLocPassByUser(ranUser, A, B, testQury);
+//						result[j][k] = ranTime;
 //						System.out.println("Spatial --- > Social");
-						ranTime = FindLocPassByUser2(ranUser, A, B, testQury);
+						
+						long ranTime = FindLocPassByUser2(ranUser, A, B, testQury);
 						result2[j][k] = ranTime;
 					}
 				}
-				System.out.println("Social --- > Spatial");
-				for(int j = 0; j < MAX_J; j++){
-					for (int k = 0; k < MAX_K; k++)
-						System.out.print(result[j][k] + ",");
-					System.out.println();
-				}
+//				System.out.println("Social --- > Spatial");
+//				for(int j = 0; j < MAX_J; j++){
+//					for (int k = 0; k < MAX_K; k++)
+//						System.out.print(result[j][k] + ",");
+//					System.out.println();
+//				}
 				System.out.println("Spatial --- > Social");
 				for(int j = 0; j < MAX_J; j++){
 					for (int k = 0; k < MAX_K; k++)
