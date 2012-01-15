@@ -13,6 +13,10 @@ import javax.xml.stream.XMLStreamException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 
+import com.vividsolutions.jts.geom.Geometry;
+
+import ac.technion.geoinfo.ssnTrj.domain.Static;
+
 
 public class OSMimpoter {
 
@@ -86,15 +90,18 @@ public class OSMimpoter {
 			}
 		}
 		
-		private Map<Integer, OSMWay> createWayList() throws XMLStreamException
+//		private Map<Integer, OSMWay> createWayList() throws XMLStreamException
+		private List<OSMWay> createWayList() throws XMLStreamException
 		{
 			javax.xml.stream.XMLInputFactory factory = null;
 			javax.xml.stream.XMLStreamReader parser = null;
-			Map<Integer, OSMWay> wayLst = null;
+//			Map<Integer, OSMWay> wayLst = null;
+			List<OSMWay> wayLst = null;
 			try {
 				 factory = javax.xml.stream.XMLInputFactory.newInstance();
 				 parser = factory.createXMLStreamReader(new FileReader(OSMFile));
-				 wayLst = new HashMap<Integer, OSMWay>();
+//				 wayLst = new HashMap<Integer, OSMWay>();
+				 wayLst = new LinkedList<OSMimpoter.OSMWay>();
 				 while (parser.hasNext())
 				 {
 					 parser.next();
@@ -184,7 +191,8 @@ public class OSMimpoter {
 								 }
 								 parser.next();
 							 }
-							 wayLst.put(tempWay.getID(), tempWay);
+							 //wayLst.put(tempWay.getID(), tempWay);
+							 wayLst.add(tempWay);
 						 }
 					 }
 				 }
@@ -200,19 +208,31 @@ public class OSMimpoter {
 			return wayLst;
 		}
 		
-		public Map<Integer, OSMWay> ImportRoads() throws Exception
+		//public Map<Integer, OSMWay> ImportRoads(int StartFrom) throws Exception
+		public boolean ImportRoads(int StartFrom) throws Exception
 		{
-			Map<Integer, OSMWay> wayLst = createWayList();
+			//Map<Integer, OSMWay> wayLst = createWayList();
+			List<OSMWay> wayLst = createWayList();
+			if (StartFrom >= wayLst.size()) 
+			{
+				System.out.println("start value (" + StartFrom + ") is higher from the way list size (" + wayLst.size() + ")");
+				return false;
+			}
 			System.out.println(wayLst.size() + " Ways has been load");
-			GraphDatabaseService graphDB = null;
+			//GraphDatabaseService graphDB = null;
 			int addedLocCounter = 0;
 			int locCounter = 0;
 			double addedPercent = 0;
 			int lstSize = wayLst.size();
+			
+			int i = -1;
 			try {
 				//graphDB = new EmbeddedGraphDatabase(graphDBFloder);
-				for (OSMWay tempWay:wayLst.values())
+				//for (OSMWay tempWay:wayLst.values())
+				for (i = StartFrom; i < wayLst.size(); i++)
 				{
+					OSMWay tempWay = wayLst.get(i);
+					
 					String address = null;
 					String type = "highway";
 					if (tempWay.attributeLst.containsKey("highway"))
@@ -228,8 +248,13 @@ public class OSMimpoter {
 						}
 						type = type + ":" +  tempWay.attributeLst.get("highway");
 						
-						if (addLocation(address, type, tempWay,"lineString"))
-							addedLocCounter++;
+						SpatialEntityParms result = BuildGeometryAndAtt(type, tempWay, "lineString");
+						if (result != null && result.Success)
+						{
+							ssn.AddRoadSegment(result.Geometry, result.AttLst, result.ValueLst);
+							addedLocCounter++;	
+						}
+							
 						double newPercent = (double)addedLocCounter/(double)lstSize;
 						if (newPercent - addedPercent > 0.05)
 						{
@@ -240,27 +265,37 @@ public class OSMimpoter {
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
+				System.out.println("stoped at: " + i);
 				e.printStackTrace();
 				throw e;
-			}finally{
-				if (graphDB != null)
-					graphDB.shutdown();
 			}
 			addedPercent = (double)addedLocCounter/(double)locCounter;
-			System.out.println(addedLocCounter + " location added " + addedPercent);
-			return wayLst;
+			System.out.println(addedLocCounter + " roads added " + addedPercent);
+			return true;
 		}
 		
-		public Map<Integer, OSMWay> ImportBulidings() throws XMLStreamException
+//		public Map<Integer, OSMWay> ImportBulidings() throws XMLStreamException
+		public boolean ImportBulidings(int StartFrom) throws Exception
 		{
-			Map<Integer, OSMWay> wayLst = createWayList();
+			//Map<Integer, OSMWay> wayLst = createWayList();
+			List<OSMWay> wayLst = createWayList();
+			if (StartFrom >= wayLst.size()) 
+			{
+				System.out.println("start value (" + StartFrom + ") is higher from the way list size (" + wayLst.size() + ")");
+				return false;
+			}
 			System.out.println(wayLst.size() + " Ways has been load");
 			int addedLocCounter = 0;
 			int locCounter = 0;
+			int lstSize = wayLst.size();
 			double addedPercent = 0;
+			
+			int i = -1;
 			try { 
-				for (OSMWay tempWay:wayLst.values())
+				//for (OSMWay tempWay:wayLst.values())
+				for (i = StartFrom; i < wayLst.size(); i++)
 				{
+					OSMWay tempWay = wayLst.get(i);
 					String address = null;
 					String type = "building";
 					if (tempWay.attributeLst.containsKey("building"))
@@ -289,9 +324,15 @@ public class OSMimpoter {
 								type = type + " , " + tempWay.attributeLst.get("amenity");
 							}
 //							type = type + ":" +  tempWay.attributeLst.get("highway");
-							if (addLocation(address, type, tempWay,"polygon"))
-								addedLocCounter ++;
-							double newPercent = (double)addedLocCounter/(double)locCounter;
+//							if (addLocation(Static.BULIDING, tempWay,"polygon"))
+//								addedLocCounter ++;
+							SpatialEntityParms result = BuildGeometryAndAtt(type, tempWay, "polygon");
+							if (result != null && result.Success)
+							{
+								ssn.AddBuilding(result.Geometry, result.AttLst, result.ValueLst);
+								addedLocCounter++;	
+							}
+							double newPercent = (double)addedLocCounter/(double)lstSize;
 							if (newPercent - addedPercent > 0.05)
 							{
 								System.out.println(newPercent*100 + "% done");
@@ -302,13 +343,16 @@ public class OSMimpoter {
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
+				System.out.println("stoped at: " + i);
 				e.printStackTrace();
+				throw e;
 			}
 			addedPercent = (double)addedLocCounter/(double)locCounter;
-			System.out.println(addedLocCounter + " location added " + addedPercent);
-			return wayLst;
+			System.out.println(addedLocCounter + " buildings added " + addedPercent);
+			return true;
 		}
 		
+		/*
 		public Map<Integer, OSMWay> ImportParks() throws XMLStreamException
 		{
 			Map<Integer, OSMWay> wayLst = createWayList();
@@ -317,7 +361,7 @@ public class OSMimpoter {
 			int addedLocCounter = 0;
 			int locCounter = 0;
 			try {
-				graphDB = new EmbeddedGraphDatabase(graphDBFloder);
+				//graphDB = new EmbeddedGraphDatabase(graphDBFloder);
 				
 				for (OSMWay tempWay:wayLst.values())
 				{
@@ -337,7 +381,7 @@ public class OSMimpoter {
 								address = String.valueOf(tempWay.getID());
 							}
 //							type = type + ":" +  tempWay.attributeLst.get("highway");
-							if (addLocation(address, type, tempWay,"polygon"))
+							if (addLocation(type, tempWay,"polygon"))
 								addedLocCounter ++;
 						}
 					}
@@ -353,69 +397,88 @@ public class OSMimpoter {
 			System.out.println(addedLocCounter + " location added " + addedPercent);
 			return wayLst;
 		}
+		*/
 		
-		public void ImportBorders() throws Exception
+		
+		public void ImportBorders(String[] spatialTypes) throws Exception
 		{
-			Map<Integer, OSMWay> wayLst = createWayList();
+			//Map<Integer, OSMWay> wayLst = createWayList();
+			List<OSMWay> wayLst = createWayList();
 			System.out.println(wayLst.size() + " Ways has been load");
 			/*GraphDatabaseService graphDb, String address, String Geometry, String locationType, String locationDes, String[] attributes, String[] values  */
 			GraphDatabaseService graphDB = null;
 			try {
-				graphDB = new EmbeddedGraphDatabase(graphDBFloder);
-				for (OSMWay tempWay:wayLst.values())
+				//graphDB = new EmbeddedGraphDatabase(graphDBFloder);
+				for (OSMWay tempWay:wayLst)
 				{
-					String address = null;
-					if (tempWay.attributeLst.containsKey("name"))
+					SpatialEntityParms result = BuildGeometryAndAtt("spatialGroup", tempWay, "polygon");
+					if (result != null && result.Success)
 					{
-						address = tempWay.attributeLst.get("name");
+						ssn.AddSpatialGroup(result.Geometry, spatialTypes, result.AttLst, result.ValueLst);
 					}
-					else if (tempWay.attributeLst.containsKey("_NAME_"))
-					{
-						address = tempWay.attributeLst.get("_NAME_");
-						if (address.endsWith("(2002)"))
-							address = address.substring(0, address.length() - 6 ).trim();
-					}
-					if (address == null) continue;
-					
-					String locationType;
-					if(tempWay.attributeLst.containsKey("border_type"))
-					{
-						locationType = tempWay.attributeLst.get("border_type");
-					}
-					else if(tempWay.attributeLst.containsKey("_NAME_"))
-					{
-						if(tempWay.attributeLst.get("_NAME_").trim().toLowerCase().startsWith("ward"))
-						{
-							locationType = "ward";
-						}
-						else if(tempWay.attributeLst.get("_NAME_").trim().toLowerCase().startsWith("anc"))
-						{
-							locationType = "anc";
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						continue;
-					}
-					
-					addLocation(address, locationType, tempWay,"polyogn");
-						
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				throw e;
-			}finally{
-				if (graphDB != null)
-					graphDB.shutdown();
 			}
 		}
 		
-		private boolean addLocation(String address, String type, OSMWay theWay, String geomType) throws Exception
+		private SpatialEntityParms BuildGeometryAndAtt(String type, OSMWay theWay, String geomType) throws Exception
+		{
+			SpatialEntityParms result = null;
+			String geometry, geomEndStr;
+			if(geomType.equalsIgnoreCase("polygon"))
+			{
+				if (theWay.isLoop())
+				{
+					geometry = "POLYGON ((";
+					geomEndStr = "))";
+				}
+				else
+				{
+					return null;
+				}
+			}
+			else if (geomType.equalsIgnoreCase("linestring"))
+			{
+				geometry = "LINESTRING (";
+				geomEndStr = ")";
+			}
+			else
+			{
+				return null;
+			}
+			
+			for (int i = 0; i < theWay.size(); i++)
+			{
+				geometry = geometry + theWay.getNode(i).getLat() + " " + theWay.getNode(i).getLon() + ","; 
+			}
+			geometry = geometry.substring(0, geometry.length() - 1) + geomEndStr;
+			
+			String[] attributes = new String[theWay.attributeLst.size() + 2];
+			String[] values = new String[theWay.attributeLst.size() + 2];
+			attributes[0] = "osm_id";
+			values[0] = Integer.toString(theWay.getID());
+			attributes[1] = "osm_type";
+			values[1] = type;
+			int i = 2;
+			for(String tempKey:theWay.attributeLst.keySet())
+			{
+				attributes[i] = "osm_" + tempKey;
+				values[i] = theWay.attributeLst.get(tempKey);
+				i++;
+			}
+			result = new SpatialEntityParms();
+			result.AttLst = attributes;
+			result.ValueLst = values;
+			result.Geometry = geometry;
+			result.Success = true;
+			return result;
+		}
+		
+		/*
+		private boolean addLocation(String type, OSMWay theWay, String geomType) throws Exception
 		{
 			String geometry, geomEndStr;
 			if(geomType.equalsIgnoreCase("polygon"))
@@ -459,7 +522,7 @@ public class OSMimpoter {
 			}
 			try 
 			{
-				ssn.AddLocation(geometry, attributes, values);
+				ssn.AddLocation(geometry, type, attributes, values);
 				System.gc();
 				//createLocation(graphDB, address, geometry, type, null, attributes, values);
 				//System.out.println(address + " added");
@@ -472,6 +535,7 @@ public class OSMimpoter {
 			//return false;
 		}
 		
+		*/
 		
 		private class OSMWay
 		{
@@ -556,4 +620,13 @@ public class OSMimpoter {
 				return attributes.get(attKey);
 			}
 		}
+		
+		class SpatialEntityParms
+		{
+			public String[] AttLst;
+			public String[] ValueLst;
+			public String Geometry;
+			public boolean Success = false;
+		}
+		
 }

@@ -14,7 +14,10 @@ import ac.technion.geoinfo.ssnTrj.domain.TimePattern;
 import ac.technion.geoinfo.ssnTrj.domain.User;
 
 public interface SSN {
-	List<SpatialEntity> AddLocation(String geom, String[] attributes, Object[] values) throws Exception;
+	//List<SpatialEntity> AddLocation(String geom,String spatialType, String[] attributes, Object[] values) throws Exception;
+	List<SpatialEntity> AddBuilding(String geom, String[] attributes, Object[] values) throws Exception;
+	List<SpatialEntity> AddRoadSegment(String geom, String[] attributes, Object[] values) throws Exception;
+	SpatialEntity AddSpatialGroup(String geom,String[] spatialTypes, String[] attributes, Object[] values) throws Exception;
 	User AddUser(String uName, String[] friendsUname, String[] relationType, String[] attributes, String[] values) throws Exception;
 	TimePattern addPattren(User theUser, SpatialEntity theSE, String TimePattrenAsStr, double confident) throws Exception;
 	Route addRoute(SpatialEntity start, SpatialEntity end, SpatialEntity[] segments) throws Exception;

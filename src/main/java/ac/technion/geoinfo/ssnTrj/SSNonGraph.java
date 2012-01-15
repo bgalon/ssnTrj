@@ -1,19 +1,16 @@
 package ac.technion.geoinfo.ssnTrj;
 
-import java.lang.management.GarbageCollectorMXBean;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.xerces.impl.xpath.regex.REUtil;
 import org.neo4j.gis.spatial.EditableLayer;
-import org.neo4j.gis.spatial.EditableLayerImpl;
-import org.neo4j.gis.spatial.RTreeIndex;
 import org.neo4j.gis.spatial.Search;
 import org.neo4j.gis.spatial.SpatialDatabaseRecord;
 import org.neo4j.gis.spatial.SpatialDatabaseService;
 import org.neo4j.gis.spatial.WKTGeometryEncoder;
 import org.neo4j.gis.spatial.query.SearchEqual;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -25,11 +22,9 @@ import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.helpers.collection.MapUtil;
 import org.neo4j.kernel.EmbeddedGraphDatabase;
 
-import com.vividsolutions.jts.algorithm.distance.DistanceToPoint;
-import com.vividsolutions.jts.algorithm.distance.PointPairDistance;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.io.WKTReader;
 import com.vividsolutions.jts.operation.linemerge.LineMerger;
 
@@ -48,8 +43,7 @@ import ac.technion.geoinfo.ssnTrj.domain.User;
 import ac.technion.geoinfo.ssnTrj.domain.Static;
 import ac.technion.geoinfo.ssnTrj.domain.UserImpl;
 import ac.technion.geoinfo.ssnTrj.geometry.ColsestRoadSearch;
-import ac.technion.geoinfo.ssnTrj.geometry.PolygonContainsSearch;
-import ac.technion.geoinfo.ssnTrj.geometry.PolygonWithinSearch;
+import ac.technion.geoinfo.ssnTrj.geometry.ContainsBySNNtypes;
 import ac.technion.geoinfo.ssnTrj.geometry.RoadIntersectSearch;
 import ac.technion.geoinfo.ssnTrj.geometry.RoadTouchesSearch;
 import ac.technion.geoinfo.ssnTrj.spatial.SsnSpatialLayer;
@@ -60,12 +54,11 @@ public class SSNonGraph implements SSN, Static {
 	private final SpatialDatabaseService sgDB;
 	private EditableLayer spatialLyr;
 	private EditableLayer routeLyr;
-	private GeometryFactory geometryFactory;
 	//private Index<Node> spatialIndex;
 	//private Index<Node> socialIndex;
 	
 	//const for map resolution
-	private final double METER = 8.98315E-06;
+	private final double METER = 8.98315E-06; //for OSM
 	private final double SEARCH_COLSEST_ROAD = 100 * METER;
 	
 	public SSNonGraph(String path)
@@ -171,8 +164,9 @@ public class SSNonGraph implements SSN, Static {
 		return new NodeWrapperImpl(graphDB.getNodeById(id));
 	}
 	
-	public List<SpatialEntity> AddLocation(String geom, String[] attributes, Object[] values) throws Exception {
-		List<SpatialEntity> theSE = null;
+	public SpatialEntity AddSpatialGroup(String geom,String[] spatialTypes, String[] attributes, Object[] values) throws Exception 
+	{
+		SpatialEntity theSE = null;
 		Transaction tx = sgDB.getDatabase().beginTx(); 
 		try
 		{
@@ -180,15 +174,25 @@ public class SSNonGraph implements SSN, Static {
 			Geometry seGeom = reader.read(geom);
 			if (seGeom.getGeometryType().equalsIgnoreCase("polygon"))
 			{
-				theSE = InsertPolygon(seGeom, spatialLyr, attributes, values);
+				Search cointainsTypes = new ContainsBySNNtypes(seGeom, spatialTypes);
+				spatialLyr.getIndex().executeSearch(cointainsTypes);
+				if(!cointainsTypes.getResults().isEmpty())
+				{
+					SpatialEntity newSE = AddSpatialEntity(seGeom, spatialLyr, Static.SPATIAL_GROUP, attributes, values);
+					for(SpatialDatabaseRecord tempSpatialRecord:cointainsTypes.getResults())
+					{
+						if(!tempSpatialRecord.getGeomNode().hasRelationship(Direction.INCOMING, SpatialRelation.within))
+							newSE.createRelationshipTo(tempSpatialRecord.getGeomNode(), SpatialRelation.within);
+					}
+				}
+				else
+				{
+					throw new Exception("the geometry do not contain any spatial entities from the required type");
+				}
 			}
-			else if (seGeom.getGeometryType().equalsIgnoreCase("LineString"))
+			else 
 			{
-				theSE = InsertLineString(seGeom, spatialLyr, attributes, values);
-			}
-			if (theSE == null)
-			{
-				throw new Exception("can not dedect geometry");
+				throw new Exception("can not dedect geometry for spatial enttiy");
 			}
 			
 			tx.success();
@@ -206,23 +210,134 @@ public class SSNonGraph implements SSN, Static {
 		 return theSE;
 	}
 	
-	private List<SpatialEntity> InsertPolygon(Geometry theGeom, EditableLayer spatialLayer, String[] attributes, Object[] values) throws Exception
+	public List<SpatialEntity> AddBuilding(String geom, String[] attributes, Object[] values) throws Exception
 	{
-		Search cointainsPoly = new PolygonContainsSearch(theGeom);
-		Search withinPoly = new PolygonWithinSearch(theGeom);
+		List<SpatialEntity> theSE = null;
+		Transaction tx = sgDB.getDatabase().beginTx(); 
+		try
+		{
+			WKTReader reader = new WKTReader();
+			Geometry seGeom = reader.read(geom);
+			if (seGeom.getGeometryType().equalsIgnoreCase("polygon"))
+			{
+				theSE = new LinkedList<SpatialEntity>();
+				Search LeadTo = new ColsestRoadSearch(seGeom, SEARCH_COLSEST_ROAD);
+				spatialLyr.getIndex().executeSearch(LeadTo);
+				SpatialEntity newSE = AddSpatialEntity(seGeom, spatialLyr, Static.BULIDING, attributes, values);
+				if (!LeadTo.getResults().isEmpty())
+				{
+					LeadTo.getResults().get(0).getGeomNode().createRelationshipTo(newSE, SpatialRelation.lead_to);
+				}
+				theSE.add(newSE);
+			}
+			else 
+			{
+				throw new Exception("can not dedect geometry for buliding");
+			}
+			
+			tx.success();
+		}
+		catch (Exception e) {
+			// TODO: handle exception
+			System.out.println(e.getMessage());
+//			throw e;
+		}
+		finally
+		{
+			tx.finish();
+		}
+		
+		 return theSE;
+	}
+	
+	public List<SpatialEntity> AddRoadSegment(String geom, String[] attributes, Object[] values) throws Exception
+	{
+		List<SpatialEntity> theSE = null;
+		Transaction tx = sgDB.getDatabase().beginTx(); 
+		try
+		{
+			WKTReader reader = new WKTReader();
+			Geometry seGeom = reader.read(geom);
+			if (seGeom.getGeometryType().equalsIgnoreCase("LineString"))
+			{
+				theSE = InsertLineString(seGeom, spatialLyr, attributes, values);
+			}
+			else
+			{
+				throw new Exception("can not dedect geometry for orad segment");
+			}
+			
+			tx.success();
+		}
+		catch (Exception e) {
+			// TODO: handle exception
+			System.out.println(e.getMessage());
+//			throw e;
+		}
+		finally
+		{
+			tx.finish();
+		}
+		
+		 return theSE;
+	}
+	
+/*	
+//	public List<SpatialEntity> AddLocation(String geom, String[] attributes, Object[] values) throws Exception {
+//		List<SpatialEntity> theSE = null;
+//		Transaction tx = sgDB.getDatabase().beginTx(); 
+//		try
+//		{
+//			WKTReader reader = new WKTReader();
+//			Geometry seGeom = reader.read(geom);
+//			if (seGeom.getGeometryType().equalsIgnoreCase("polygon"))
+//			{
+//				theSE = InsertPolygon(seGeom, spatialLyr ,attributes, values);
+//			}
+//			else if (seGeom.getGeometryType().equalsIgnoreCase("LineString"))
+//			{
+//				theSE = InsertLineString(seGeom, spatialLyr, attributes, values);
+//			}
+//			if (theSE == null)
+//			{
+//				throw new Exception("can not dedect geometry");
+//			}
+//			
+//			tx.success();
+//		}
+//		catch (Exception e) {
+//			// TODO: handle exception
+//			System.out.println(e.getMessage());
+////			throw e;
+//		}
+//		finally
+//		{
+//			tx.finish();
+//		}
+//		
+//		 return theSE;
+//	}
+*/	
+
+
+/*
+	private List<SpatialEntity> InsertPolygon(Geometry theGeom, EditableLayer spatialLayer ,String[] attributes, Object[] values) throws Exception
+	{
+//		Search cointainsPoly = new PolygonContainsSearch(theGeom);
+//		Search withinPoly = new PolygonWithinSearch(theGeom);
 		Search LeadTo = new ColsestRoadSearch(theGeom, SEARCH_COLSEST_ROAD);
-		spatialLyr.getIndex().executeSearch(cointainsPoly);
-		spatialLyr.getIndex().executeSearch(withinPoly);
+//		spatialLyr.getIndex().executeSearch(cointainsPoly);
+//		spatialLyr.getIndex().executeSearch(withinPoly);
 		spatialLyr.getIndex().executeSearch(LeadTo);
-		SpatialEntity newSE = AddSpatialEntity(theGeom, spatialLyr, BULIDING, attributes, values);
-		for(SpatialDatabaseRecord tempSpatialRecord:cointainsPoly.getResults())
-		{
-			newSE.createRelationshipTo(tempSpatialRecord.getGeomNode(), SpatialRelation.within);
-		}
-		for(SpatialDatabaseRecord tempSpatialRecord:withinPoly.getResults())
-		{
-			tempSpatialRecord.getGeomNode().createRelationshipTo(newSE, SpatialRelation.within);
-		}
+		SpatialEntity newSE = AddSpatialEntity(theGeom, spatialLyr, Static.BULIDING, attributes, values);
+//		for(SpatialDatabaseRecord tempSpatialRecord:cointainsPoly.getResults())
+//		{
+//			newSE.createRelationshipTo(tempSpatialRecord.getGeomNode(), SpatialRelation.within);
+//		}
+//		for(SpatialDatabaseRecord tempSpatialRecord:withinPoly.getResults())
+//		{
+//			tempSpatialRecord.getGeomNode().createRelationshipTo(newSE, SpatialRelation.within);
+//		}
 		if (!LeadTo.getResults().isEmpty())
 		{
 			LeadTo.getResults().get(0).getGeomNode().createRelationshipTo(newSE, SpatialRelation.lead_to);
@@ -231,6 +346,8 @@ public class SSNonGraph implements SSN, Static {
 		returnLst.add(newSE);
 		return returnLst;
 	}
+	
+	*/
 	
 	private List<SpatialEntity> InsertLineString(Geometry theGeom, EditableLayer spatialLayer, String[] thisAttributes, Object[] thisValues) throws Exception
 	{
@@ -280,7 +397,7 @@ public class SSNonGraph implements SSN, Static {
 		returnedList = new LinkedList<SpatialEntity>(); 
 		for(int i = 0; i < needToBeAddedFromDB.size(); i++)
 		{
-			returnedList.add(AddRoadSegment(needToBeAddedFromDB.get(i), spatialLayer, 
+			returnedList.add(AddOneRoadSegment(needToBeAddedFromDB.get(i), spatialLayer, 
 					DBattributes.get(i), DBvalues.get(i)));
 		}
 		
@@ -314,13 +431,13 @@ public class SSNonGraph implements SSN, Static {
 		
 		for(Geometry addMe:needToBeAddedFromThis)
 		{
-			returnedList.add(AddRoadSegment(addMe, spatialLayer, thisAttributes, thisValues));
+			returnedList.add(AddOneRoadSegment(addMe, spatialLayer, thisAttributes, thisValues));
 		}
 		
 		return returnedList;
     }
 	
-	private SpatialEntity AddRoadSegment(Geometry theGeom, EditableLayer spatialLayer, String[] attributes, Object[] values) throws Exception
+	private SpatialEntity AddOneRoadSegment(Geometry theGeom, EditableLayer spatialLayer, String[] attributes, Object[] values) throws Exception
 	{
 		SpatialEntity newSE = AddSpatialEntity(theGeom, spatialLayer, ROAD_SEGMENT, attributes, values);
 		
@@ -328,10 +445,56 @@ public class SSNonGraph implements SSN, Static {
 		spatialLayer.getIndex().executeSearch(touchSearch);
 		for(SpatialDatabaseRecord tempSpatialRecord:touchSearch.getResults())
 		{
-			newSE.createRelationshipTo(tempSpatialRecord.getGeomNode(), SpatialRelation.touch);
+			//TODO: add here connectivity check for the relationship
+			SpatialEntity otherNode = new SpatialEntityImpl(tempSpatialRecord.getGeomNode());
+			
+			if(CheckRSConnectivity(newSE, otherNode))
+				newSE.createRelationshipTo(otherNode.getNode(), SpatialRelation.touch);
+			if(CheckRSConnectivity(otherNode, newSE))
+				otherNode.createRelationshipTo(newSE.getNode(), SpatialRelation.touch);
+			
 		}
 		
 		return newSE;
+	}
+	
+	private boolean CheckRSConnectivity(SpatialEntity seFrom, SpatialEntity seTo) throws Exception
+	{
+		//in this function we assume that the road segments are touched at the ends of each segments
+		if (!seTo.getGeometry().getGeometryType().equals("LineString") && !seFrom.getGeometry().getGeometryType().equals("LineString")) 
+			return false;
+		
+		LineString lsTo = (LineString)seTo.getGeometry();
+		LineString lsFrom = (LineString)seFrom.getGeometry();
+		if(IsOneway(seFrom))
+		{
+			if(IsOneway(seTo))
+			{
+				return lsFrom.getEndPoint().equals(lsTo.getStartPoint());
+			}
+			else
+			{
+				return lsTo.touches(lsFrom.getEndPoint());
+			}
+		}
+		else
+		{
+			if(IsOneway(seTo))
+			{
+				return lsFrom.touches(lsTo.getStartPoint());
+			}
+			else
+			{
+				return lsFrom.touches(lsTo);
+			}
+		}
+	}
+	
+	private boolean IsOneway(SpatialEntity se)
+	{
+		if(se.hasProperty(ONEWAY_PROPERTY) && ((String)se.getProperty(ONEWAY_PROPERTY)).equals("yes"))
+			return true;
+		return false;
 	}
 	
 	private SpatialEntity AddSpatialEntity(Geometry theGeom, EditableLayer spatialLayer, String type, String[] attributes, Object[] values) throws Exception

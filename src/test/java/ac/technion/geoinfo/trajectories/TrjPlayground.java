@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import ac.technion.geoinfo.ssnTj.trajectories.TaxiGPSTrj;
+import ac.technion.geoinfo.ssnTrj.trajectories.TaxiGPSTrj;
 
 public class TrjPlayground {
 

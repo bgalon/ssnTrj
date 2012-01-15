@@ -8,8 +8,10 @@ import org.neo4j.gis.spatial.EditableLayer;
 import org.neo4j.gis.spatial.SpatialDatabaseRecord;
 import org.neo4j.gis.spatial.SpatialDatabaseService;
 import org.neo4j.gis.spatial.query.SearchInRelation;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.server.plugins.Description;
 import org.neo4j.server.plugins.Name;
 import org.neo4j.server.plugins.Parameter;
@@ -17,6 +19,7 @@ import org.neo4j.server.plugins.PluginTarget;
 import org.neo4j.server.plugins.ServerPlugin;
 import org.neo4j.server.plugins.Source;
 
+import ac.technion.geoinfo.ssnTrj.domain.SpatialRelation;
 import ac.technion.geoinfo.ssnTrj.domain.Static;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -71,6 +74,21 @@ public class SSNplugin extends ServerPlugin implements Static {
 		for(SpatialDatabaseRecord tempSDBR: search.getResults())
 		{
 			returnSet.add(tempSDBR.getGeomNode());
+		}
+		
+		return returnSet;
+	}
+	
+	@Name("GetAllTouched")
+	@Description("get all nodes that have touch realtionship leaving this node")
+	@PluginTarget(Node.class)
+	public Iterable<Node> GetAllTouched(@Source Node sourceNode)
+	{
+		Set<Node> returnSet = new HashSet<Node>();
+		Iterable<Relationship> touched = sourceNode.getRelationships(SpatialRelation.touch, Direction.OUTGOING);
+		for(Relationship tempRel:touched)
+		{
+			returnSet.add(tempRel.getEndNode());
 		}
 		
 		return returnSet;

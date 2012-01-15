@@ -1,4 +1,4 @@
-package ac.technion.geoinfo.ssnTj.trajectories;
+package ac.technion.geoinfo.ssnTrj.trajectories;
 
 public class PIT4Texi extends PointInTime {
 	

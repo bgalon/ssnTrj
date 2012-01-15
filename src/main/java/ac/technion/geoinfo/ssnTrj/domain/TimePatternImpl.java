@@ -2,7 +2,7 @@ package ac.technion.geoinfo.ssnTrj.domain;
 
 import org.neo4j.graphdb.Relationship;
 
-public class TimePattrenImpl implements TimePattren,Static {
+public class TimePatternImpl implements TimePattern,Static {
 
 		//in a string format of "frame;units;start;end"
 		//frame can be:Y - year, M - month, W - week and D - Day
@@ -14,7 +14,7 @@ public class TimePattrenImpl implements TimePattren,Static {
 		private boolean isDoual;
 		private Relationship theRel = null;
 		
-		public TimePattrenImpl(Relationship theRel) throws Exception
+		public TimePatternImpl(Relationship theRel) throws Exception
 		{
 			if(!theRel.isType(TimePatternRelation.tpToRoute) && !theRel.isType(TimePatternRelation.tpToSpatialEntity))
 				throw new Exception("the relationship is not timepattren type");
@@ -25,7 +25,7 @@ public class TimePattrenImpl implements TimePattren,Static {
 			this.theRel = theRel;
 		}
 			
-		public TimePattrenImpl(String stringRe) throws Exception
+		public TimePatternImpl(String stringRe) throws Exception
 		{
 			//in a string format of "frame;units;start;end"
 			//frame can be:Y - year, M - month, W - week and D - Day
@@ -97,7 +97,7 @@ public class TimePattrenImpl implements TimePattren,Static {
 
 		//work only for the same time pattern
 		//the result is between 0 (for no overlap) to 1 (for full overlap)
-		public double intersectDiff(TimePattren otherTimePattern){
+		public double intersectDiff(TimePattern otherTimePattern){
 			if (otherTimePattern == null ) return 1;
 			if (this.frame != otherTimePattern.getFrame()) return 0;
 			
@@ -121,7 +121,7 @@ public class TimePattrenImpl implements TimePattren,Static {
 						/ (this.units.length * totalTime()); 
 		}
 		
-		private int timeIntersection(TimePattren otherPatternRe){
+		private int timeIntersection(TimePattern otherPatternRe){
 			int[] thisTimes;
 			int[] otherTimes;
 			if (this.isDoual){
@@ -175,8 +175,8 @@ public class TimePattrenImpl implements TimePattren,Static {
 		
 		public static double intersect(String TP1, String TP2) throws Exception
 		{
-			TimePattren tp1 = new TimePattrenImpl(TP1);
-			TimePattren tp2 = new TimePattrenImpl(TP2);
+			TimePattern tp1 = new TimePatternImpl(TP1);
+			TimePattern tp2 = new TimePatternImpl(TP2);
 			return tp1.intersectDiff(tp2);
 		}
 		

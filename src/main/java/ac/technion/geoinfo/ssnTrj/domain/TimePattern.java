@@ -1,6 +1,6 @@
 package ac.technion.geoinfo.ssnTrj.domain;
 
-public interface TimePattren {
+public interface TimePattern {
 
 	TimeFrame getFrame();
 	int[] getUnits();
@@ -11,5 +11,5 @@ public interface TimePattren {
 	User getUser();
 	SpatialEntity getSpatialEntity() throws Exception;
 	
-	double intersectDiff(TimePattren otherTimePattern);
+	double intersectDiff(TimePattern otherTimePattern);
 }

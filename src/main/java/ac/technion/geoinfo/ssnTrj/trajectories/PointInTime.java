@@ -1,4 +1,4 @@
-package ac.technion.geoinfo.ssnTj.trajectories;
+package ac.technion.geoinfo.ssnTrj.trajectories;
 
 import java.util.Date;
 
