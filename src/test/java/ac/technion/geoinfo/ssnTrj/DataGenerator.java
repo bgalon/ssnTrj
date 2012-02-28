@@ -20,6 +20,7 @@ import ac.technion.geoinfo.ssnTrj.domain.User;
 import ac.technion.geoinfo.ssnTrj.domain.UserImpl;
 import ac.technion.geoinfo.ssnTrj.generator.RouteGenerator;
 import ac.technion.geoinfo.ssnTrj.generator.UserGenerator;
+import ac.technion.geoinfo.ssnTrj.osm.OSMimporter;
 import ac.technion.geoinfo.ssnTrj.query.SSNbfsQuery;
 import ac.technion.geoinfo.ssnTrj.query.SSNquery;
 
@@ -139,9 +140,9 @@ public class DataGenerator {
 //		String osmFileNPath = "C:\\osmData\\Washington_varySmall.osm";
 		String osmFileNPath = "C:\\osmData\\Washington_testCase.osm";
 //		String osmFileNPath = "C:\\osmData\\AmericanUniversity.osm";
-		OSMimpoter myOsmImporter = new OSMimpoter(osmFileNPath,dbPath);
-		myOsmImporter.ImportRoads();
-		myOsmImporter.ImportBulidings();
+		OSMimporter myOsmImporter = new OSMimporter(osmFileNPath,dbPath);
+		myOsmImporter.ImportRoads(0);
+		myOsmImporter.ImportBulidings(0);
 		myOsmImporter.Dispose();
 //		System.out.println("Done Spatial");
 	}

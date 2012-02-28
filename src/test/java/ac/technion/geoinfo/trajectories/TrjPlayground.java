@@ -34,7 +34,7 @@ public class TrjPlayground {
 					  if (files.endsWith(".txt") || files.endsWith(".TXT"))
 					  {
 						  TaxiGPSTrj testMe = TaxiGPSTrj.Txt2GPStrj(path + files);
-						  testMe.analyizeMe(300000, 15, 900000);
+						  testMe.analyizeMe(300000, 20, 900000);
 						  String name = files.substring(0, files.length() - 4);
 //						  int[] testMeAsArray = testMe.getTrjAsArray(1211018404000L, 1213089934000L, 1000*60*30);
 //						  writer.write(name + ",");
@@ -43,15 +43,15 @@ public class TrjPlayground {
 //						  writer.newLine();
 						  testMe.bulidKML(resultPath + name + ".kml");
 						  
-//						  System.out.print(name + "," + testMe.totalNO_DATA + "," +  testMe.totalNO_CLASSIFICATION  + "," + testMe.totalERROR_DATA  + "," + testMe.totalROUTE  + "," + testMe.totalSTAY_POINT + "," + testMe.getStartTime() + "," + testMe.getEndTime() + "," + testMe.getTotaltime() + ",");
-//						  System.out.println(testMe.NO_DATADis + "," +  testMe.NO_CLASSIFICATIONDis  + "," + testMe.ERROR_DATADis  + "," + testMe.ROUTEDis  + "," + testMe.STAY_POINTDIs + "," + testMe.TOTALDis + ",");
+						  System.out.print(name + "," + testMe.totalNO_DATA + "," +  testMe.totalNO_CLASSIFICATION  + "," + testMe.totalERROR_DATA  + "," + testMe.totalROUTE  + "," + testMe.totalSTAY_POINT + "," + testMe.getStartTime() + "," + testMe.getEndTime() + "," + testMe.getTotaltime() + ",");
+						  System.out.println(testMe.NO_DATADis + "," +  testMe.NO_CLASSIFICATIONDis  + "," + testMe.ERROR_DATADis  + "," + testMe.ROUTEDis  + "," + testMe.STAY_POINTDIs + "," + testMe.TOTALDis + ",");
 			        }
 			     }
 			  }
 		  }
 		  catch(IOException e)
 		  {
-		
+			  e.printStackTrace();
 		  }
 		  finally
 		  {

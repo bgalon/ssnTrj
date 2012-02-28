@@ -140,4 +140,23 @@
 
   </dependencies>
 
+  <build>
+    <plugins>
+        <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <configuration>
+                <archive>
+                    <manifest>
+                    	<addClasspath>true</addClasspath>
+                        <mainClass>ac.technion.geoinfo.ssnTrj.apps.Import_OSM</mainClass>
+                    </manifest>
+                </archive>
+                <descriptorRefs>
+                    <descriptorRef>jar-with-dependencies</descriptorRef>
+                </descriptorRefs>
+            </configuration>
+        </plugin>
+    </plugins>
+  </build>
+
 </project>

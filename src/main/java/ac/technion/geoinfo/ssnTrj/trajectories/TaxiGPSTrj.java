@@ -45,7 +45,7 @@ public class TaxiGPSTrj {
 					tempPnt.lon = Float.parseFloat(splitLine[1]);
 					if (Integer.parseInt(splitLine[2]) == 1) tempPnt.HasPassenger = true;
 					tempPnt.t = new Date(Long.parseLong(splitLine[3])*1000);
-					tempGPSTrj.pntSq. add(0,tempPnt);
+					tempGPSTrj.pntSq.add(0,tempPnt);
 				}
 			}
 			finally
@@ -70,7 +70,7 @@ public class TaxiGPSTrj {
 	//split the route to no-data, stay-point and routes between stayPoint.
 	//dt, noDataDt in milliseconds and dis in meters
 	{
-		legLst.add(new Leg());
+		//legLst.add(new Leg());
 		//long startTime = System.nanoTime();
 		PIT4Texi lastPnt = null;
 		PointInTime middle = null; // the lat, lon are the mean and the time is the start time
@@ -80,6 +80,7 @@ public class TaxiGPSTrj {
 		{
 			if(lastPnt == null) 
 			{
+				//for the first interation
 				legLst.getLast().addPnt(tempTP);
 				lastPnt = tempTP;
 				continue;
@@ -87,9 +88,8 @@ public class TaxiGPSTrj {
 			long pntDt = tempTP.t.getTime() - lastPnt.t.getTime();
 			if(pntDt > noDataDt)
 			{
+				//lastPnt.PITClass = RouteClassification.NO_DATA;
 				tempTP.PITClass = RouteClassification.NO_DATA;
-				//add the no data leg to the legs list
-//				addTolegs(tempTP);
 				lastPnt = tempTP;
 				continue;
 			}
@@ -97,35 +97,33 @@ public class TaxiGPSTrj {
 			tempTP.Dis = tempTP.Distance(lastPnt); //this calc now for validation  
 			TOTALDis += tempTP.Dis;
 			
-			if(middle != null)
-				//we on a potential stay point
-			{
-				double STdis = tempTP.Distance(middle);
-				if(STdis < dis)
-				{ //this pnt can be in the stay point
-					middle.lat = (middle.lat * SPs.size() + tempTP.lat)/(SPs.size() + 1);
-					middle.lon = (middle.lon * SPs.size() + tempTP.lon)/(SPs.size() + 1);
-					SPs.add(tempTP);
-				}
-				else 
-				{
-					if(SPs.getLast().t.getTime() - SPs.getFirst().t.getTime() >= dt)
-					{// the collection is a stay point
-						RouteClassification tempCalss = SPs.getFirst().PITClass;
-						for(PIT4Texi tempSP:SPs) 
-						{
-							tempSP.PITClass = RouteClassification.STAY_POINT;
-//							addTolegs(tempTP);
-						}
-						SPs.getFirst().PITClass = tempCalss;
-					}
-					middle = null;
-					SPs = null;
-				}
-				//addTolegs(tempTP);
-				lastPnt = tempTP;
-				continue;	
-			}
+//			if(middle != null)
+//				//we on a potential stay point
+//			{
+//				double STdis = tempTP.Distance(middle);
+//				if(STdis < dis)
+//				{ //this pnt can be in the stay point
+//					middle.lat = (middle.lat * SPs.size() + tempTP.lat)/(SPs.size() + 1);
+//					middle.lon = (middle.lon * SPs.size() + tempTP.lon)/(SPs.size() + 1);
+//					SPs.add(tempTP);
+//				}
+//				else 
+//				{
+//					if(SPs.getLast().t.getTime() - SPs.getFirst().t.getTime() >= dt)
+//					{// the collection is a stay point
+//						RouteClassification tempCalss = SPs.getFirst().PITClass;
+//						for(PIT4Texi tempSP:SPs) 
+//						{
+//							tempSP.PITClass = RouteClassification.STAY_POINT;
+//						}
+//						SPs.getFirst().PITClass = tempCalss;
+//					}
+//					middle = null;
+//					SPs = null;
+//				}
+//				lastPnt = tempTP;
+//				continue;	
+//			}
 			
 			
 			if(tempTP.Dis > dis)
@@ -133,16 +131,45 @@ public class TaxiGPSTrj {
 				double time4Speed = (tempTP.t.getTime() - lastPnt.t.getTime()) / (double)(1000*60*60);
 				if ((tempTP.Dis/1000)/(time4Speed)> 200) //if case drive speed is higher then 60 KPH
 				{
-					//lastPnt.PITClass = RouteClassification.ERROR_DATA;
+					lastPnt.PITClass = RouteClassification.ERROR_DATA;
 					tempTP.PITClass = RouteClassification.ERROR_DATA;
 				} else {
-					//lastPnt.PITClass = RouteClassification.ROUTE;
+					lastPnt.PITClass = RouteClassification.ROUTE;
 					tempTP.PITClass = RouteClassification.ROUTE;
 				}
 			}
 			else
 			{
-				// satrt a new stay point
+				if(middle != null)
+					//we on a potential stay point
+				{
+					double STdis = tempTP.Distance(middle);
+					if(STdis < dis)
+					{ //this pnt can be in the stay point
+						middle.lat = (middle.lat * SPs.size() + tempTP.lat)/(SPs.size() + 1);
+						middle.lon = (middle.lon * SPs.size() + tempTP.lon)/(SPs.size() + 1);
+						SPs.add(tempTP);
+					}
+					else 
+					{
+						if(SPs.getLast().t.getTime() - SPs.getFirst().t.getTime() >= dt)
+						{// the collection is a stay point
+							RouteClassification tempCalss = SPs.getFirst().PITClass;
+							for(PIT4Texi tempSP:SPs) 
+							{
+								tempSP.PITClass = RouteClassification.STAY_POINT;
+							}
+							SPs.getFirst().PITClass = tempCalss;
+						}
+						middle = null;
+						SPs = null;
+					}
+					lastPnt = tempTP;
+					continue;	
+				}
+				
+				
+				// start a new stay point
 				middle = new PointInTime();
 				middle.lat = (lastPnt.lat + tempTP.lat) / 2;
 				middle.lon = (lastPnt.lon + tempTP.lon) / 2;
@@ -151,7 +178,6 @@ public class TaxiGPSTrj {
 				SPs.add(lastPnt);
 				SPs.add(tempTP);
 			}
-//			addTolegs(tempTP);
 			lastPnt = tempTP;
 		}
 		buildLegs();
@@ -408,10 +434,15 @@ public class TaxiGPSTrj {
 	
 	private void writeNoClass(Leg pntLst, BufferedWriter writer) throws IOException
 	{
+		double dis = CalcDis(pntLst);
 		writer.write("<Placemark>"); writer.newLine();
 		//writer.write("<name>" + tempPnt.t.toString() + "</name>");writer.newLine();
 		writer.write("<description><![CDATA[");writer.newLine();
-		writer.write("No Classifcation");writer.newLine();
+		writer.write("No Classifcation <br/>");writer.newLine(); 
+		writer.write("start time: " + pntLst.getStartTime().toString() +  "<br/>");writer.newLine();
+		writer.write("end time: " + pntLst.getLast().t.toString() +  "<br/>");writer.newLine();
+		writer.write("total time [min]: " + pntLst.getTotaltime()/(long)(1000*60) +  "<br/>");writer.newLine();
+		writer.write("Distance [m]: " + dis +  "<br/>");writer.newLine();
 		writer.write("]]></description>");writer.newLine();
 		writer.write("<MultiGeometry>");writer.newLine();
 		for(PIT4Texi tempPnt:pntLst)
@@ -424,10 +455,15 @@ public class TaxiGPSTrj {
 	
 	private void writeNoData(Leg pntLst, BufferedWriter writer) throws IOException
 	{
+		double dis = CalcDis(pntLst);
 		writer.write("<Placemark>"); writer.newLine();
 		//writer.write("<name>" + tempPnt.t.toString() + "</name>");writer.newLine();
 		writer.write("<description><![CDATA[");writer.newLine();
-		writer.write("No Data");writer.newLine();
+		writer.write("No Data  <br/>");writer.newLine();
+		writer.write("start time: " + pntLst.getStartTime().toString() +  "<br/>");writer.newLine();
+		writer.write("end time: " + pntLst.getLast().t.toString() +  "<br/>");writer.newLine();
+		writer.write("total time [min]: " + pntLst.getTotaltime()/(long)(1000*60) +  "<br/>");writer.newLine();
+		writer.write("Distance [m]: " + dis +  "<br/>");writer.newLine();
 		writer.write("]]></description>");writer.newLine();
 		writer.write("<MultiGeometry>");writer.newLine();
 		for(PIT4Texi tempPnt:pntLst)
@@ -455,7 +491,7 @@ public class TaxiGPSTrj {
 		writer.write("<h1>Data Error</h1>");writer.newLine();
 		writer.write("start time: " + pntLst.getStartTime().toString() +  "<br/>");writer.newLine();
 		writer.write("end time: " + pntLst.getLast().t.toString() +  "<br/>");writer.newLine();
-		writer.write("total time [min]: " + pntLst.getTotaltime()/(1000*60) +  "<br/>");writer.newLine();
+		writer.write("total time [min]: " + pntLst.getTotaltime()/(long)(1000*60) +  "<br/>");writer.newLine();
 		writer.write("Distance [m]: " + dis +  "<br/>");writer.newLine();
 		writer.write("]]></description>");writer.newLine();
 		writer.write("<styleUrl>#err</styleUrl>"); writer.newLine();
@@ -479,7 +515,7 @@ public class TaxiGPSTrj {
 		writer.write("<h1>Route</h1>");writer.newLine();
 		writer.write("start time: " + pntLst.getStartTime().toString() +  "<br/>");writer.newLine();
 		writer.write("end time: " + pntLst.getLast().t.toString() +  "<br/>");writer.newLine();
-		writer.write("total time [min]: " + pntLst.getTotaltime()/(1000*60) +  "<br/>");writer.newLine();
+		writer.write("total time [min]: " + pntLst.getTotaltime()/(long)(1000*60) +  "<br/>");writer.newLine();
 		writer.write("Distance [m]: " + dis +  "<br/>");writer.newLine();
 		writer.write("]]></description>");writer.newLine();
 		writer.write("<styleUrl>#route</styleUrl>"); writer.newLine();
@@ -488,11 +524,16 @@ public class TaxiGPSTrj {
 	
 	private void writeStayPnt(Leg pntLst, BufferedWriter writer) throws IOException
 	{
+		double dis = CalcDis(pntLst);
 		writer.write("<Placemark>"); writer.newLine();
 		writer.write("<styleUrl>#stay</styleUrl>"); writer.newLine();
 		//writer.write("<name>" + tempPnt.t.toString() + "</name>");writer.newLine();
 		writer.write("<description><![CDATA[");writer.newLine();
-		writer.write("Stay Point");writer.newLine();
+		writer.write("Stay Point  <br/>");writer.newLine();
+		writer.write("start time: " + pntLst.getStartTime().toString() +  "<br/>");writer.newLine();
+		writer.write("end time: " + pntLst.getLast().t.toString() +  "<br/>");writer.newLine();
+		writer.write("total time [min]: " + pntLst.getTotaltime()/(long)(1000*60) +  "<br/>");writer.newLine();
+		writer.write("Distance [m]: " + dis +  "<br/>");writer.newLine();
 		writer.write("]]></description>");writer.newLine();
 		writer.write("<MultiGeometry>");writer.newLine(); 
 		for(PIT4Texi tempPnt:pntLst)
@@ -502,6 +543,16 @@ public class TaxiGPSTrj {
 		writeCircle(pntLst.getMeanPnt(), pntLst.getRadiusInDeg(), writer);
 		writer.write("</MultiGeometry>");writer.newLine();
 		writer.write("</Placemark>"); writer.newLine();
+	}
+	
+	private double CalcDis(Leg pntLst)
+	{
+		double dis = 0;
+		for(PIT4Texi tempPnt:pntLst)
+		{
+			dis = dis + tempPnt.Dis;
+		}
+		return dis;
 	}
 	
 	private void writeCircle(PointInTime meanPnt, double r, BufferedWriter writer) throws IOException

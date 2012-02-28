@@ -61,21 +61,21 @@ public class SSNonGraph implements SSN, Static {
 	private final double METER = 8.98315E-06; //for OSM
 	private final double SEARCH_COLSEST_ROAD = 100 * METER;
 	
-	public SSNonGraph(String path)
+	public SSNonGraph(String path) throws Exception
 	{
 		graphDB = new EmbeddedGraphDatabase(path);
 		sgDB = new SpatialDatabaseService(graphDB);
 		init();
 	}
 	
-	public SSNonGraph(GraphDatabaseService theGraphDB)
+	public SSNonGraph(GraphDatabaseService theGraphDB) throws Exception
 	{
 		graphDB = theGraphDB;
 		sgDB = new SpatialDatabaseService(graphDB);
 		init();
 	}
 	
-	private void init()
+	private void init() throws Exception
 	{
 		Transaction tx = sgDB.getDatabase().beginTx(); 
 		try
@@ -109,7 +109,9 @@ public class SSNonGraph implements SSN, Static {
 		}
 		catch (Exception e) {
 			// TODO: handle exception
-			e.printStackTrace();
+			tx.failure();
+			throw e;
+			//e.printStackTrace();
 		}
 		finally
 		{
@@ -174,7 +176,7 @@ public class SSNonGraph implements SSN, Static {
 			Geometry seGeom = reader.read(geom);
 			if (seGeom.getGeometryType().equalsIgnoreCase("polygon"))
 			{
-				Search cointainsTypes = new ContainsBySNNtypes(seGeom, spatialTypes);
+				Search cointainsTypes = new ContainsBySNNtypes(seGeom.buffer(8.98315E-06*400), spatialTypes);
 				spatialLyr.getIndex().executeSearch(cointainsTypes);
 				if(!cointainsTypes.getResults().isEmpty())
 				{
@@ -199,8 +201,9 @@ public class SSNonGraph implements SSN, Static {
 		}
 		catch (Exception e) {
 			// TODO: handle exception
-			System.out.println(e.getMessage());
-//			throw e;
+			//System.out.println(e.getMessage());
+			tx.failure();
+			throw e;
 		}
 		finally
 		{
@@ -239,8 +242,9 @@ public class SSNonGraph implements SSN, Static {
 		}
 		catch (Exception e) {
 			// TODO: handle exception
-			System.out.println(e.getMessage());
-//			throw e;
+			//System.out.println(e.getMessage());
+			tx.failure();
+			throw e;
 		}
 		finally
 		{
@@ -271,8 +275,9 @@ public class SSNonGraph implements SSN, Static {
 		}
 		catch (Exception e) {
 			// TODO: handle exception
-			System.out.println(e.getMessage());
-//			throw e;
+			//System.out.println(e.getMessage());
+			tx.failure();
+			throw e;
 		}
 		finally
 		{
@@ -549,7 +554,7 @@ public class SSNonGraph implements SSN, Static {
 		}
 		catch (Exception e) {
 			// TODO: handle exception
-			System.out.println(spatialLayer.getIndex().count());
+			//System.out.println(spatialLayer.getIndex().count());
 			//System.out.println("remove: " + removeRecord.getGeomNode().getId() + "-" + removeRecord.getId());
 			//((RTreeIndexFix)spatialLayer.getIndex()).debugIndexTree();
 			throw e;
@@ -642,7 +647,8 @@ public class SSNonGraph implements SSN, Static {
 		catch (Exception e) 
 		{
 			// TODO: handle exception
-			System.out.println(e.getMessage());
+			//System.out.println(e.getMessage());
+			tx.failure();
 			throw e;
 		}
 		finally
@@ -676,7 +682,8 @@ public class SSNonGraph implements SSN, Static {
 		}
 		catch (Exception e) {
 			// TODO: handle exception
-			System.out.println(e.getMessage());
+			//System.out.println(e.getMessage());
+			tx.failure();
 			throw e;
 		}
 		finally
@@ -748,7 +755,8 @@ public class SSNonGraph implements SSN, Static {
 			// TODO: handle exception
 			System.out.println(e.getMessage());
 			newRoute = null;
-//			throw e;
+			tx.failure();
+			throw e;
 		}
 		finally
 		{
