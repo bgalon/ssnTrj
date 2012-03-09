@@ -11,7 +11,7 @@ public class OSMimport {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		final String dbPath = "C:\\neo4j-enterprise-1.5\\data\\graph.db";
+		final String dbPath = "D:\\neo4j-enterprise-1.5\\data\\graph.db";
 		
 		//String osmFileNPath = "C:\\osmData\\Washington-border1.osm";
 		//String osmFileNPath = "C:\\osmData\\Washington_varySmall.osm";
@@ -19,7 +19,7 @@ public class OSMimport {
 		
 		System.out.println("heap size is:" + Runtime.getRuntime().totalMemory() + " Bytes");
 		
-		String osmFileNPath = "C:\\osmData\\sfverySmall.osm";
+		String osmFileNPath = "D:\\osmData\\sfverySmall.osm";
 //		String osmFileNPath = "C:\\osmData\\sf-bay-area.osm";
 
 		
@@ -38,19 +38,19 @@ public class OSMimport {
 		System.out.println("Done Strem Import");
 		myOsmImporter.Dispose();
 		
-		osmFileNPath = "C:\\osmData\\sf_neighborhood.osm";
+		osmFileNPath = "D:\\osmData\\sf_neighborhood.osm";
 		myOsmImporter = new OSMimporter(osmFileNPath,dbPath);
 		myOsmImporter.ImportBorders(new String[]{Static.BULIDING, Static.ROAD_SEGMENT});
 		myOsmImporter.Dispose();
 		System.out.println("heap size is:" + Runtime.getRuntime().totalMemory() + " Bytes");
 		
-		osmFileNPath = "C:\\osmData\\bayarea_cities.osm";
+		osmFileNPath = "D:\\osmData\\bayarea_cities.osm";
 		myOsmImporter = new OSMimporter(osmFileNPath,dbPath);
 		myOsmImporter.ImportBorders(new String[]{Static.SPATIAL_GROUP});
 		myOsmImporter.Dispose();
 		System.out.println("heap size is:" + Runtime.getRuntime().totalMemory() + " Bytes");
 		
-		osmFileNPath = "C:\\osmData\\bayaera_county.osm";
+		osmFileNPath = "D:\\osmData\\bayaera_county.osm";
 		myOsmImporter = new OSMimporter(osmFileNPath,dbPath);
 		myOsmImporter.ImportBorders(new String[]{Static.SPATIAL_GROUP});
 		myOsmImporter.Dispose();

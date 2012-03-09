@@ -322,6 +322,7 @@ public class DefaultLayerFix implements Constants, Layer, SpatialDataset {
      * 
      * @return iterable over geometry nodes in the dataset
      */
+    //this method  will not work with ssnLayers
     public Iterable<Node> getAllGeometryNodes() {
         return layerNode.traverse(Order.DEPTH_FIRST, StopEvaluator.END_OF_GRAPH, ReturnableEvaluator.ALL_BUT_START_NODE,
                 SpatialRelationshipTypes.GEOMETRIES, Direction.OUTGOING, SpatialRelationshipTypes.NEXT_GEOM, Direction.OUTGOING);

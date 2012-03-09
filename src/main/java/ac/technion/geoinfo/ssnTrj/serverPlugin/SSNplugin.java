@@ -8,6 +8,7 @@ import org.neo4j.gis.spatial.EditableLayer;
 import org.neo4j.gis.spatial.SpatialDatabaseRecord;
 import org.neo4j.gis.spatial.SpatialDatabaseService;
 import org.neo4j.gis.spatial.query.SearchInRelation;
+import org.neo4j.gis.spatial.query.SearchIntersectWindow;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -66,7 +67,8 @@ public class SSNplugin extends ServerPlugin implements Static {
 		coordinates[3] = new Coordinate(Double.parseDouble(splitStr[2]),Double.parseDouble(splitStr[3]));
 
 		Polygon other = thelayer.getGeometryFactory().createPolygon(thelayer.getGeometryFactory().createLinearRing(coordinates),null);
-		SearchInRelation search = new SearchInRelation(other, "T*****T**");
+		//SearchInRelation search = new SearchInRelation(other, "T*****T**");
+		SearchIntersectWindow search = new SearchIntersectWindow(other.getEnvelopeInternal());
 		
 		thelayer.getIndex().executeSearch(search);
 		

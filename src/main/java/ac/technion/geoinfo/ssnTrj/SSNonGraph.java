@@ -119,6 +119,23 @@ public class SSNonGraph implements SSN, Static {
 		}
 	}
 	
+	//for testing*************
+	public EditableLayer getSatialEntitesLayer()
+	{
+		return spatialLyr;
+	}
+	
+	public GraphDatabaseService getGDB()
+	{
+		return graphDB;
+	}
+	
+	public EditableLayer getLayer(String theLayer)
+	{
+		return (EditableLayer) sgDB.getLayer(theLayer);
+	}
+	//end of test methods 
+	
 	public void finalize() throws Throwable
 	{
 		Dispose();
