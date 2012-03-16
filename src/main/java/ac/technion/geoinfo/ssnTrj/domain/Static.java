@@ -7,12 +7,14 @@ public interface Static {
 	
 	//type option
 	public static final String TYPE_INDEX = "type";
+	public static final String TEMPORAL_INDEX = "temopral_index";
 	public static final String ROAD_SEGMENT = "roadSegment";
 	public static final String ONEWAY_PROPERTY = "osm_oneway";
 	public static final String BULIDING = "buliding";
 	public static final String ROUTE = "route";
 	public static final String SPATIAL_GROUP ="spatialGroup";
 	public static final String USER = "user";
+	
 
 	//network option
 	// static final String S

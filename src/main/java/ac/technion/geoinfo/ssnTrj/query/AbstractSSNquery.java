@@ -83,7 +83,7 @@ public abstract class AbstractSSNquery implements SSNquery, Static {
 
 	public abstract Collection<NodeWrapper> Select(Collection<NodeWrapper> source, String theQuery) throws Exception;
 
-	public abstract Collection<NodeWrapper> Extend(Collection<NodeWrapper> source, RelationshipType[] relationType, String[] conditions) throws Exception;
+	//public abstract Collection<NodeWrapper> Extend(Collection<NodeWrapper> source, RelationshipType[] relationType, String[] conditions) throws Exception;
 	public abstract Collection<NodeWrapper> Move(Collection<NodeWrapper> source, RelationshipType[] relationType, String[] conditions) throws Exception ;
 	public abstract Collection<NodeWrapper> MultiMove(Collection<NodeWrapper> source, RelationshipType[] relationType, String[] conditions, double percentage) throws Exception;
 	public abstract Collection<NodeWrapper> Union(Collection<NodeWrapper> source1, Collection<NodeWrapper> source2) throws Exception;

@@ -52,11 +52,11 @@ public class SSNbfsQuery extends AbstractSSNquery {
 		}
 	}
 	
-	@Override
-	public Collection<NodeWrapper> Extend(Collection<NodeWrapper> source, RelationshipType[] relationType, String[] conditions) throws Exception {
-		// TODO Auto-generated method stub
-		return Union(source, Move(source, relationType, conditions));
-	}
+//	@Override
+//	public Collection<NodeWrapper> Extend(Collection<NodeWrapper> source, RelationshipType[] relationType, String[] conditions) throws Exception {
+//		// TODO Auto-generated method stub
+//		return Union(source, Move(source, relationType, conditions));
+//	}
 
 	@Override
 	public Collection<NodeWrapper> Move(Collection<NodeWrapper> source, RelationshipType[] relationType, String[] conditions) throws Exception {
@@ -229,5 +229,4 @@ public class SSNbfsQuery extends AbstractSSNquery {
 			return true;
 		return false;
 	}
-
 }

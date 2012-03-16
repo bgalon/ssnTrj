@@ -11,7 +11,7 @@ public interface SSNquery {
 	Collection<NodeWrapper> Select(String source, String theQuery) throws Exception;
 	Collection<NodeWrapper> Select(Collection<NodeWrapper> source, String theQuery) throws Exception;
 	
-	Collection<NodeWrapper> Extend(Collection<NodeWrapper> source, RelationshipType[] relationType, String[] conditions) throws Exception;
+//	Collection<NodeWrapper> Extend(Collection<NodeWrapper> source, RelationshipType[] relationType, String[] conditions) throws Exception;
 	Collection<NodeWrapper> Move(Collection<NodeWrapper> source, RelationshipType[] relationType, String[] conditions) throws Exception;
 	
 	Collection<NodeWrapper> MultiMove(Collection<NodeWrapper> source, RelationshipType[] relationType, String[] conditions, double percentage) throws Exception;
