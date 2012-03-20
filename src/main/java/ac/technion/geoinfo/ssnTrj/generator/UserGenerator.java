@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -63,9 +64,13 @@ public class UserGenerator {
 		List<String> fullNameList = FileToList(namesFile);
 		List<String> profssionList = FileToList(profssionFile);
 		List<String> hobbiesList = FileToList(hobbiesFile);
-		List<String> usedNameList = new LinkedList<String>();
-		List<String> persList = new LinkedList<String>();
-		userNameLst = new LinkedList<NodeWrapper>();
+//		List<String> usedNameList = new LinkedList<String>();
+//		List<String> persList = new LinkedList<String>();
+//		userNameLst = new LinkedList<NodeWrapper>();
+		List<String> usedNameList = new ArrayList<String>();
+		List<String> persList = new ArrayList<String>();
+		userNameLst = new ArrayList<NodeWrapper>();
+		
 		Random ranGen = new Random();
 		
 		while(!nameList.isEmpty()){
@@ -83,7 +88,8 @@ public class UserGenerator {
 				perStr = perStr + profssionList.get(ranProfssion) + ",";
 				
 				int numOfHoobies = MINIMUM_HOBBIES + ranGen.nextInt(MAXIMUM_HOBBIES);
-				List<String> tempHobbiesList = new LinkedList<String>();
+//				List<String> tempHobbiesList = new LinkedList<String>();
+				List<String> tempHobbiesList = new ArrayList<String>();
 				perStr = perStr + "(";
 				for(int i = 0; i <= numOfHoobies; i++ ){
 					int hobbyNum = ranGen.nextInt(hobbiesList.size());
@@ -96,7 +102,8 @@ public class UserGenerator {
 				int numOfFriend = (int)(MINIMUM_FRIENDS*l + ranGen.nextInt((int)(MAXIMUM_FRIENDS*l)));
 				numOfFriend = Math.min(numOfFriend, usedNameList.size());
 				perStr = perStr + "),( ";
-				List<String> friendsList = new LinkedList<String>();
+//				List<String> friendsList = new LinkedList<String>();
+				List<String> friendsList = new ArrayList<String>();
 				for(int i = 0; i < numOfFriend; i++ ){
 					int friendNum = ranGen.nextInt(usedNameList.size());
 					perStr = perStr + usedNameList.get(friendNum) + ",";
@@ -289,7 +296,8 @@ public class UserGenerator {
 	
 	private void fillUserList()
 	{
-		userNameLst = new LinkedList<NodeWrapper>();
+//		userNameLst = new LinkedList<NodeWrapper>();
+		userNameLst = new ArrayList<NodeWrapper>();
 		Index<Node> theInd = ((SSNonGraph)ssn).getNodeIndex("type");
 		IndexHits<Node> indResult = theInd.get("type", "user");
 		for(Node tempNode:indResult)
@@ -484,7 +492,8 @@ public class UserGenerator {
 	{
 		Random ranGen = new Random();
 		int numOfDays = 1 + ranGen.nextInt(3);
-		List<Integer> weekDay = new LinkedList<Integer>();
+//		List<Integer> weekDay = new LinkedList<Integer>();
+		List<Integer> weekDay = new ArrayList<Integer>();
 		for (int i = 1; i <= 7; i++) 
 			weekDay.add(i);
 		int[] tempPatten = new int[numOfDays];
@@ -515,7 +524,8 @@ public class UserGenerator {
 	{
 		Random ranGen = new Random();
 		int numOfDays = 1 + ranGen.nextInt(3);
-		List<Integer> weekDay = new LinkedList<Integer>();
+//		List<Integer> weekDay = new LinkedList<Integer>();
+		List<Integer> weekDay = new ArrayList<Integer>();
 		for (int i = 1; i <= 7; i++) 
 			weekDay.add(i);
 		int[] tempPatten = new int[numOfDays];
@@ -565,7 +575,8 @@ public class UserGenerator {
 	}
 	
 	private List<String> FileToList(String filePath){
-		final List<String> list = new LinkedList<String>();
+//		final List<String> list = new LinkedList<String>();
+		final List<String> list = new ArrayList<String>();
 		try{
 			BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath));
 			try {

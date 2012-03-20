@@ -1,6 +1,7 @@
 package ac.technion.geoinfo.ssnTrj.osm;
 
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -196,7 +197,8 @@ public class OSMimporter {
 				 factory = javax.xml.stream.XMLInputFactory.newInstance();
 				 parser = factory.createXMLStreamReader(new FileReader(OSMFile));
 //				 wayLst = new HashMap<Integer, OSMWay>();
-				 wayLst = new LinkedList<OSMimporter.OSMWay>();
+//				 wayLst = new LinkedList<OSMimporter.OSMWay>();
+				 wayLst = new ArrayList<OSMimporter.OSMWay>();
 				 while (parser.hasNext())
 				 {
 					 parser.next();
@@ -747,7 +749,8 @@ public class OSMimporter {
 			public OSMWay(int osmId)
 			{
 				this.osmId = osmId;
-				nodeLst = new LinkedList<OSMNode>();
+//				nodeLst = new LinkedList<OSMNode>();
+				nodeLst = new ArrayList<OSMNode>();
 				attributeLst = new HashMap<String, String>();
 			}
 			

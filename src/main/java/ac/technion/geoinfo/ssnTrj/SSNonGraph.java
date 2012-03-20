@@ -240,7 +240,8 @@ public class SSNonGraph implements SSN, Static {
 			Geometry seGeom = reader.read(geom);
 			if (seGeom.getGeometryType().equalsIgnoreCase("polygon"))
 			{
-				theSE = new LinkedList<SpatialEntity>();
+				//theSE = new LinkedList<SpatialEntity>();
+				theSE = new ArrayList<SpatialEntity>();
 				Search LeadTo = new ColsestRoadSearch(seGeom, SEARCH_COLSEST_ROAD);
 				spatialLyr.getIndex().executeSearch(LeadTo);
 				SpatialEntity newSE = AddSpatialEntity(seGeom, spatialLyr, Static.BULIDING, attributes, values);
@@ -377,11 +378,16 @@ public class SSNonGraph implements SSN, Static {
 		//Geometry tempGeom = theGeom;
 		Search lineStringSearch = new RoadIntersectSearch(theGeom);
 		spatialLayer.getIndex().executeSearch(lineStringSearch);
-		List<Geometry> needToBeAddedFromThis = new LinkedList<Geometry>();
-		List<Geometry> needToBeAddedFromDB = new LinkedList<Geometry>();
+//		List<Geometry> needToBeAddedFromThis = new LinkedList<Geometry>();
+//		List<Geometry> needToBeAddedFromDB = new LinkedList<Geometry>();
+//		
+//		List<String[]> DBattributes = new LinkedList<String[]>();
+//		List<Object[]> DBvalues = new LinkedList<Object[]>();
+		List<Geometry> needToBeAddedFromThis = new ArrayList<Geometry>();
+		List<Geometry> needToBeAddedFromDB = new ArrayList<Geometry>();
 		
-		List<String[]> DBattributes = new LinkedList<String[]>();
-		List<Object[]> DBvalues = new LinkedList<Object[]>();
+		List<String[]> DBattributes = new ArrayList<String[]>();
+		List<Object[]> DBvalues = new ArrayList<Object[]>();
 		needToBeAddedFromThis.add(theGeom);
 		List<SpatialEntity> returnedList = null;
 		
@@ -416,7 +422,8 @@ public class SSNonGraph implements SSN, Static {
 			}
 		}
 		
-		returnedList = new LinkedList<SpatialEntity>(); 
+//		returnedList = new LinkedList<SpatialEntity>(); 
+		returnedList = new ArrayList<SpatialEntity>(); 
 		for(int i = 0; i < needToBeAddedFromDB.size(); i++)
 		{
 			returnedList.add(AddOneRoadSegment(needToBeAddedFromDB.get(i), spatialLayer, 
@@ -429,8 +436,10 @@ public class SSNonGraph implements SSN, Static {
 			//in case that the new geometry cuts due to geometries in the database
 			//Geometry other = extend((LineString)tempSpatialRecord.getGeometry(), 10*METER);
 			Geometry other = tempSpatialRecord.getGeometry();
-			List<Geometry> addTo_eedToBeAddedFromThis = new LinkedList<Geometry>();;
-			List<Geometry> removeFrom_eedToBeAddedFromThis = new LinkedList<Geometry>();
+//			List<Geometry> addTo_eedToBeAddedFromThis = new LinkedList<Geometry>();
+//			List<Geometry> removeFrom_eedToBeAddedFromThis = new LinkedList<Geometry>();
+			List<Geometry> addTo_eedToBeAddedFromThis = new ArrayList<Geometry>();
+			List<Geometry> removeFrom_eedToBeAddedFromThis = new ArrayList<Geometry>();
 			for (Geometry thisGeom:needToBeAddedFromThis)
 			{
 				Geometry geomDiffOther = thisGeom.difference(other);

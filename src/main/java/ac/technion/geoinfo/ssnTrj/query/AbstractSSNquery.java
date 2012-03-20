@@ -1,5 +1,6 @@
 package ac.technion.geoinfo.ssnTrj.query;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,7 +49,8 @@ public abstract class AbstractSSNquery implements SSNquery, Static {
 		}else{
 			throw new Exception("network source mast be social or spatial");
 		}
-		List<NodeWrapper> returnLst =  new LinkedList<NodeWrapper>();
+//		List<NodeWrapper> returnLst =  new LinkedList<NodeWrapper>();
+		List<NodeWrapper> returnLst =  new ArrayList<NodeWrapper>();
 		for (Node tempNode:theIndex.query(fullTxtKey , theQuery))
 		{
 			returnLst.add(new NodeWrapperImpl(tempNode));
@@ -73,7 +75,8 @@ public abstract class AbstractSSNquery implements SSNquery, Static {
 		
 		ssn.executeSpatialSearch(search, lyr);
 		List<SpatialDatabaseRecord> result = search.getResults();
-		List<NodeWrapper> retrunLst = new LinkedList<NodeWrapper>();
+//		List<NodeWrapper> retrunLst = new LinkedList<NodeWrapper>();
+		List<NodeWrapper> retrunLst = new ArrayList<NodeWrapper>(result.size());
 		for (SpatialDatabaseRecord tempRec : result)
 		{
 			retrunLst.add(new SpatialEntityImpl(tempRec.getGeomNode()));
