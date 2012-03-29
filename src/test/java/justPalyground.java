@@ -3,7 +3,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Random;
 
+import ac.technion.geoinfo.ssnTrj.indexes.temporal.BuildDBs;
 import ac.technion.geoinfo.ssnTrj.indexes.temporal.timeHierarchy;
 
 
@@ -15,21 +17,40 @@ public class justPalyground {
 	 */
 	public static void main(String[] args) throws ParseException {
 		
-		Calendar testCal = Calendar.getInstance();
-		testCal.setTime(new Date(System.currentTimeMillis()));
+		Random rangen = new Random();
 		
-		System.out.println(testCal.get(Calendar.YEAR));
-
-		DateFormat formatter = new SimpleDateFormat("dd-MM-yy");
-		Calendar getDate = Calendar.getInstance();  
-		getDate.setTime(formatter.parse("26-02-12"));
-		System.out.println(getDate.getTime());
-		System.out.println();
+		//BuildDBs dbBuilder = new BuildDBs(new String[]{dbPathCircle, dbPathRel, dbPathRelTree, dbPathIndex}, IndexCalsses, 1000, 11100);
+		//dbBuilder.BuildUsersNLocations();
+		int iterCount = 1;
+		long startTime = 0;
+		for(int i = 0; i < 100; i = i + 10){
+			long endTime  = startTime + (long)(60*60*1000) * iterCount * 1000;
+			int locStart = rangen.nextInt(11100 - iterCount * 1000);
+			//dbBuilder.BuildTimesForUsers(i, i + 9, locStart , locStart + iterCount , startTime, endTime);
+			
+			
+			System.out.println("done users " + i + "-" + (i + 9) + ", Time: " + startTime + "-" + endTime + "(" + 
+					((endTime-startTime)/(1000 * 60 * 60))  + "h), locations: " + locStart + "-" + (locStart + iterCount));
+			
+			iterCount++;
+			startTime = endTime + 1;
+		}
 		
-		Date tempMin = new Date(getWeekMin(getDate.get(Calendar.YEAR),getDate.get(Calendar.MONTH), getDate.get(Calendar.WEEK_OF_MONTH)));
-		Date tempMax = new Date(getWeekMax(getDate.get(Calendar.YEAR),getDate.get(Calendar.MONTH), getDate.get(Calendar.WEEK_OF_MONTH)));
-		System.out.println(tempMin);
-		System.out.println(tempMax);
+//		Calendar testCal = Calendar.getInstance();
+//		testCal.setTime(new Date(System.currentTimeMillis()));
+//		
+//		System.out.println(testCal.get(Calendar.YEAR));
+//
+//		DateFormat formatter = new SimpleDateFormat("dd-MM-yy");
+//		Calendar getDate = Calendar.getInstance();  
+//		getDate.setTime(formatter.parse("26-02-12"));
+//		System.out.println(getDate.getTime());
+//		System.out.println();
+//		
+//		Date tempMin = new Date(getWeekMin(getDate.get(Calendar.YEAR),getDate.get(Calendar.MONTH), getDate.get(Calendar.WEEK_OF_MONTH)));
+//		Date tempMax = new Date(getWeekMax(getDate.get(Calendar.YEAR),getDate.get(Calendar.MONTH), getDate.get(Calendar.WEEK_OF_MONTH)));
+//		System.out.println(tempMin);
+//		System.out.println(tempMax);
 		
 //		tempMin = new Date(getWeekMin(2012,2, 5));
 //		tempMax = new Date(getWeekMax(2012,2, 5));

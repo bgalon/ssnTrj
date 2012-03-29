@@ -8,6 +8,7 @@ public interface NodeWrapper extends Node {
 	double getExpected();
 	
 	void addLaed();
+	void addLaeds(int numberOfLeaeds);
 	int getLeads();
 	
 	@Override

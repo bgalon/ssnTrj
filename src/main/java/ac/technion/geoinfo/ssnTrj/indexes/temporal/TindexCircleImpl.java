@@ -6,10 +6,8 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.commons.lang.SystemUtils;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -22,19 +20,32 @@ import ac.technion.geoinfo.ssnTrj.domain.TimeIntervalImpl;
 import ac.technion.geoinfo.ssnTrj.domain.TimeIntervalIntersection;
 import ac.technion.geoinfo.ssnTrj.domain.TimePatternRelation;
 
-public class TindexCircleImpl implements TemopralIndex, TemporalStatic {
+public class TindexCircleImpl implements TemporalIndex, TemporalStatic {
 	//Assuming that time interval is in one day
 	TemporalIndexNode treeRoot;
 	
-	public TindexCircleImpl(Node nodeWithIndex)
+	public TindexCircleImpl(Node nodeWithIndex) throws Exception
 	{
 		//TODO: add checks here to if theRoot is a root Node.
 		Relationship rel = nodeWithIndex.getSingleRelationship(TimePatternRelation.tpIndex, Direction.OUTGOING);
 		if(rel != null){
 			treeRoot = new TemporalIndexNode(rel.getEndNode());
 		}else{
-			treeRoot = new TemporalIndexNode(nodeWithIndex.getGraphDatabase().createNode());
-			nodeWithIndex.createRelationshipTo(treeRoot, TimePatternRelation.tpIndex);
+			Transaction tx = nodeWithIndex.getGraphDatabase().beginTx(); 
+			try
+			{
+				treeRoot = new TemporalIndexNode(nodeWithIndex.getGraphDatabase().createNode());
+				nodeWithIndex.createRelationshipTo(treeRoot, TimePatternRelation.tpIndex);
+				tx.success();
+			}catch (Exception e) {
+				// TODO: handle exception
+				tx.failure();
+				throw e;
+			}
+			finally
+			{
+			tx.finish();
+			}
 		}
 	}
 	
@@ -70,49 +81,51 @@ public class TindexCircleImpl implements TemopralIndex, TemporalStatic {
 			//**build the index for the first time
 			if (treeRoot.getInclude() == null) {
 				initIndex(toInsert, startTime, endTime);
-				return;
+			}else{
+				Date startDate = new Date(startTime);
+				Calendar startCal = Calendar.getInstance();
+				startCal.setTime(startDate);
+				//**find the time node
+				TemporalIndexNode yearNode = FindAdd(treeRoot, TindexCircleImpl.class.getDeclaredMethod("createYearNode", Calendar.class), 
+						startCal, startTime, endTime);
+				TemporalIndexNode monthNode = FindAdd(yearNode, TindexCircleImpl.class.getDeclaredMethod("createMonthNode", Calendar.class), 
+						startCal, startTime, endTime);
+				TemporalIndexNode weekNode = FindAdd(monthNode, TindexCircleImpl.class.getDeclaredMethod("createWeekNode", Calendar.class), 
+						startCal, startTime, endTime);
+				TemporalIndexNode dayNode = FindAdd(weekNode, TindexCircleImpl.class.getDeclaredMethod("createDayNode", Calendar.class), 
+						startCal, startTime, endTime);
+				TemporalIndexNode timeNode = FindAdd(dayNode, TindexCircleImpl.class.getDeclaredMethod("createTimeNode", Calendar.class), 
+						startCal, startTime, endTime);
+				timeNode.setProperty(END_TIME, endTime);
+				//for debuging.
+	//			if (timeNode.hasRelationship(circleTempoalRelTypes.time_reference, Direction.OUTGOING))
+	//				System.out.println("!******Error Here*******!");
+	//				
+				timeNode.createRelationshipTo(toInsert, circleTempoalRelTypes.time_reference);
+				
+				long indexStartTime = (Long)treeRoot.getProperty(START_TIME);
+				if (startTime < indexStartTime) treeRoot.setProperty(START_TIME, startTime);
+				long indexEndTime = (Long)treeRoot.getProperty(END_TIME);
+				if(endTime > indexEndTime) treeRoot.setProperty(END_TIME, endTime);
+				
+				
+				int numSoFar = (Integer)treeRoot.getProperty(NUMBER_OF_LEAVES);
+				treeRoot.setProperty(NUMBER_OF_LEAVES, numSoFar + 1);
 			}
-			Date startDate = new Date(startTime);
-			Calendar startCal = Calendar.getInstance();
-			startCal.setTime(startDate);
-			//**find the time node
-			TemporalIndexNode yearNode = FindAdd(treeRoot, TindexCircleImpl.class.getDeclaredMethod("createYearNode", Calendar.class), 
-					startCal, startTime, endTime);
-			TemporalIndexNode monthNode = FindAdd(yearNode, TindexCircleImpl.class.getDeclaredMethod("createMonthNode", Calendar.class), 
-					startCal, startTime, endTime);
-			TemporalIndexNode weekNode = FindAdd(monthNode, TindexCircleImpl.class.getDeclaredMethod("createWeekNode", Calendar.class), 
-					startCal, startTime, endTime);
-			TemporalIndexNode dayNode = FindAdd(weekNode, TindexCircleImpl.class.getDeclaredMethod("createDayNode", Calendar.class), 
-					startCal, startTime, endTime);
-			TemporalIndexNode timeNode = FindAdd(dayNode, TindexCircleImpl.class.getDeclaredMethod("createTimeNode", Calendar.class), 
-					startCal, startTime, endTime);
-			timeNode.setProperty(END_TIME, endTime);
-			//for debuging.
-//			if (timeNode.hasRelationship(circleTempoalRelTypes.time_reference, Direction.OUTGOING))
-//				System.out.println("!******Error Here*******!");
-//				
-			timeNode.createRelationshipTo(toInsert, circleTempoalRelTypes.time_reference);
-			
-			long indexStartTime = (Long)treeRoot.getProperty(START_TIME);
-			if (startTime < indexStartTime) treeRoot.setProperty(START_TIME, startTime);
-			long indexEndTime = (Long)treeRoot.getProperty(END_TIME);
-			if(endTime > indexEndTime) treeRoot.setProperty(END_TIME, endTime);
-			
-			
-			int numSoFar = (Integer)treeRoot.getProperty(NUMBER_OF_LEAVES);
-			treeRoot.setProperty(NUMBER_OF_LEAVES, numSoFar + 1);
 			tx.success();
 		}
 		catch (Exception e) {
-			// TODO: handle exception
 			tx.failure();
 			throw e;
-			//e.printStackTrace();
 		}
 		finally
 		{
 			tx.finish();
 		}
+		
+//		TemporalIndex reverseIndex = new TindexCircleImpl(toInsert);
+//		reverseIndex.Add(new NodeWrapperImpl(treeRoot.getSingleRelationship(TimePatternRelation.tpIndex, Direction.INCOMING).getEndNode()),
+//					startTime, endTime);
 	}
 	
 	private TemporalIndexNode FindAdd(TemporalIndexNode rootNode, Method theNodeCerator, Calendar cal,
@@ -181,6 +194,16 @@ public class TindexCircleImpl implements TemopralIndex, TemporalStatic {
 	}
 	
 
+	public Collection<NodeWrapper> Search(Map<Long, NodeWrapper> addToThis, long startTime, long endTime) throws Exception {
+		return Search(addToThis, new TimeIntervalImpl(startTime, endTime));
+	}
+
+	public Collection<NodeWrapper> Search(Map<Long, NodeWrapper> addToThis, TimeInterval searchInter) throws Exception {
+		TemporalIndexNode startHere = new TemporalIndexNode(treeRoot.getSingleRelationship(circleTempoalRelTypes.inclue_time, Direction.OUTGOING).getEndNode());
+		Visit(addToThis, startHere, searchInter);
+		return addToThis.values();
+	}
+	
 	public Collection<NodeWrapper> Search(TimeInterval inter) throws Exception {
 //		return Search(inter.GetStartTime(), inter.GetEndTime());
 		Map<Long,NodeWrapper> retrunColl = new HashMap<Long,NodeWrapper>();

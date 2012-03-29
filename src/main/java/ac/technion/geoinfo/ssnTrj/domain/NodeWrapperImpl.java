@@ -24,6 +24,10 @@ public class NodeWrapperImpl implements NodeWrapper,Static {
 	public void addLaed() {
 		leads++;
 	}
+	
+	public void addLaeds(int numberOfLeaeds) {
+		leads = leads + numberOfLeaeds;
+	}
 
 	public int getLeads() {
 		return leads;
