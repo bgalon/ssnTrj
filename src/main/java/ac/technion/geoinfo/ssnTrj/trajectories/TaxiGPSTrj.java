@@ -71,8 +71,9 @@ public class TaxiGPSTrj {
 	//split the route to no-data, stay-point and routes between stayPoint.
 	//dt, noDataDt in milliseconds and dis in meters
 	{
-		//legLst.add(new Leg());
+		legLst.add(new Leg());
 		//long startTime = System.nanoTime();
+		
 		PIT4Texi lastPnt = null;
 		PointInTime middle = null; // the lat, lon are the mean and the time is the start time
 		LinkedList<PIT4Texi> SPs = null;

@@ -1,7 +1,6 @@
 package ac.technion.geoinfo.ssnTrj;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.neo4j.gis.spatial.EditableLayer;

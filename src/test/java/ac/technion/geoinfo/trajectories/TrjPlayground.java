@@ -1,8 +1,6 @@
 package ac.technion.geoinfo.trajectories;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 
 import ac.technion.geoinfo.ssnTrj.trajectories.TaxiGPSTrj;
