@@ -148,7 +148,7 @@
                 <archive>
                     <manifest>
                     	<addClasspath>true</addClasspath>
-                        <mainClass>ac.technion.geoinfo.ssnTrj.apps.bulidTempoTestDB</mainClass>
+                        <mainClass>ac.technion.geoinfo.ssnTrj.apps.Import_OSM</mainClass>
                     </manifest>
                 </archive>
                 <descriptorRefs>

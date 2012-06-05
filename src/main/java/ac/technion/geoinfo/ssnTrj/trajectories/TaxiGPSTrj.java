@@ -77,14 +77,16 @@ public class TaxiGPSTrj {
 		PIT4Texi lastPnt = null;
 		PointInTime middle = null; // the lat, lon are the mean and the time is the start time
 		LinkedList<PIT4Texi> SPs = null;
+		boolean hasPass;
 		
 		for(PIT4Texi tempTP:pntSq)
 		{
 			if(lastPnt == null) 
 			{
-				//for the first interation
+				//for the first interation 
 				legLst.getLast().addPnt(tempTP);
 				lastPnt = tempTP;
+				hasPass = tempTP.HasPassenger;
 				continue;
 			}
 			long pntDt = tempTP.t.getTime() - lastPnt.t.getTime();
@@ -99,39 +101,10 @@ public class TaxiGPSTrj {
 			tempTP.Dis = tempTP.Distance(lastPnt); //this calc now for validation  
 			TOTALDis += tempTP.Dis;
 			
-//			if(middle != null)
-//				//we on a potential stay point
-//			{
-//				double STdis = tempTP.Distance(middle);
-//				if(STdis < dis)
-//				{ //this pnt can be in the stay point
-//					middle.lat = (middle.lat * SPs.size() + tempTP.lat)/(SPs.size() + 1);
-//					middle.lon = (middle.lon * SPs.size() + tempTP.lon)/(SPs.size() + 1);
-//					SPs.add(tempTP);
-//				}
-//				else 
-//				{
-//					if(SPs.getLast().t.getTime() - SPs.getFirst().t.getTime() >= dt)
-//					{// the collection is a stay point
-//						RouteClassification tempCalss = SPs.getFirst().PITClass;
-//						for(PIT4Texi tempSP:SPs) 
-//						{
-//							tempSP.PITClass = RouteClassification.STAY_POINT;
-//						}
-//						SPs.getFirst().PITClass = tempCalss;
-//					}
-//					middle = null;
-//					SPs = null;
-//				}
-//				lastPnt = tempTP;
-//				continue;	
-//			}
-			
-			
 			if(tempTP.Dis > dis)
 			{
 				double time4Speed = (tempTP.t.getTime() - lastPnt.t.getTime()) / (double)(1000*60*60);
-				if ((tempTP.Dis/1000)/(time4Speed)> 200) //if case drive speed is higher then 60 KPH
+				if ((tempTP.Dis/1000)/(time4Speed)> 200) //if case drive speed is higher then 200 KPH
 				{
 					lastPnt.PITClass = RouteClassification.ERROR_DATA;
 					tempTP.PITClass = RouteClassification.ERROR_DATA;
@@ -241,118 +214,7 @@ public class TaxiGPSTrj {
 		legLst.getLast().addPnt(tempPnt);
 	}
 	
-	
-//	public void bulidKML(String fileName) throws IOException
-//	{
-//		BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
-//		try
-//		{
-//			writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"); writer.newLine();
-//			writer.write("<kml xmlns=\"http://www.opengis.net/kml/2.2\">"); writer.newLine();
-//			writer.write("<Document>"); writer.newLine();
-//			
-//			writer.write("<Style id=\"route\">"); writer.newLine();
-//			writer.write("<LineStyle>"); writer.newLine();
-//			writer.write("<color>7f00ffff</color>"); writer.newLine();
-//			writer.write("<width>4</width>"); writer.newLine();
-//			writer.write("</LineStyle>"); writer.newLine();
-//			writer.write("</Style>"); writer.newLine();
-//			
-//			writer.write("<Style id=\"err\">"); writer.newLine();
-//			writer.write("<LineStyle>"); writer.newLine();
-//			writer.write("<color>00990000</color>"); writer.newLine();
-//			writer.write("<width>4</width>"); writer.newLine();
-//			writer.write("</LineStyle>"); writer.newLine();
-//			writer.write("</Style>"); writer.newLine();
-//
-//			LinkedList<PIT4Texi> pntLst = null;
-//		    PIT4Texi lastPnt = null;
-//		    double totalDis = 0;
-////			boolean firstRun = true;
-//		    RouteClassification lstClass = null;
-//			for(PIT4Texi tempPnt:pntSq)
-//			{
-//				if(lastPnt == null) 
-//				{//for the first run
-//					pntLst = new LinkedList<PIT4Texi>();
-//					pntLst.add(tempPnt);
-//					totalDis += tempPnt.Dis;
-//					lstClass = tempPnt.PITClass;
-////					firstRun = false;
-//					lastPnt = tempPnt;
-//					continue;
-//				}
-//				
-//				if(tempPnt.PITClass != lstClass)
-//				{//store the data and start a new list
-//					printLst2Kml(pntLst, lstClass, writer, totalDis);
-//					pntLst = null;
-//					totalDis = 0;
-//				}
-//				else
-//				{//add this item to the list
-//					pntLst.add(tempPnt);
-//				}
-//				if(pntLst == null)
-//				{//start a new lst
-//					pntLst = new LinkedList<PIT4Texi>();
-//					pntLst.add(lastPnt);
-//					pntLst.add(tempPnt);
-//					totalDis += lastPnt.Dis;
-//					totalDis += tempPnt.Dis;
-//					lstClass = tempPnt.PITClass;
-//				}
-//				
-//				lastPnt = tempPnt;
-//			}
-//			printLst2Kml(pntLst, lstClass, writer, totalDis);
-//			
-//			writer.write("</Document>"); writer.newLine();
-//			writer.write("</kml>");writer.newLine();
-//		}
-//		catch(IOException e)
-//		{
-//			
-//		}
-//		finally
-//		{
-//			writer.close();
-//		}
-//	}
-	
-//	private void printLst2Kml(LinkedList<PIT4Texi> pntLst,RouteClassification lstClass ,BufferedWriter writer, double totalDis) throws IOException
-//	{
-//		long lstTime = pntLst.getLast().t.getTime() - pntLst.getFirst().t.getTime();
-//		switch (lstClass) {
-//		case NO_CLASSIFICATION:
-//			writeNoClass(pntLst, writer);
-//			totalNO_CLASSIFICATION += lstTime;
-//			NO_CLASSIFICATIONDis += totalDis;
-//			break;
-//		case NO_DATA:
-//			writeNoData(pntLst, writer);
-//			totalNO_DATA += lstTime;
-//			NO_DATADis += totalDis;
-//			break;
-//		case ERROR_DATA:
-//			writeErrData(pntLst, writer);
-//			totalERROR_DATA += lstTime;
-//			ERROR_DATADis += totalDis;
-//			break;
-//		case ROUTE:
-//			writeRoute(pntLst, writer);
-//			totalROUTE += lstTime;
-//			ROUTEDis += totalDis;
-//			break;
-//		case STAY_POINT:
-//			writeStayPnt(pntLst, writer);
-//			totalSTAY_POINT += lstTime;
-//			STAY_POINTDIs += totalDis;
-//			break;
-//		default:
-//			break;
-//		}
-//	}
+
 	
 	public void bulidKML(String fileName) throws IOException
 	{

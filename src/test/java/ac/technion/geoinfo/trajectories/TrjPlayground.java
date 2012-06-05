@@ -32,7 +32,7 @@ public class TrjPlayground {
 					  if (files.endsWith(".txt") || files.endsWith(".TXT"))
 					  {
 						  TaxiGPSTrj testMe = TaxiGPSTrj.Txt2GPStrj(path + files);
-						  testMe.analyizeMe(300000, 20, 900000);
+						  testMe.analyizeMe(300000, 50, 1000000);
 						  String name = files.substring(0, files.length() - 4);
 //						  int[] testMeAsArray = testMe.getTrjAsArray(1211018404000L, 1213089934000L, 1000*60*30);
 //						  writer.write(name + ",");

@@ -21,7 +21,7 @@ public class RemoveGeometryRel {
 	 */
 	public static void main(String[] args) throws Exception {
 		
-		final String dbPath = "D:\\neo4j-enterprise-1.5\\data\\graph.db";
+		final String dbPath = "C:\\neo4j-enterprise-1.5\\data\\graph.db";
 		
 		SSNonGraph ssn = new SSNonGraph(dbPath); 
 		int counter = 0;
@@ -46,7 +46,7 @@ public class RemoveGeometryRel {
 		{
 			Del5000(toDelIter, ssn);
 		}
-		
+		ssn.Dispose();
 		
 	}
 	
