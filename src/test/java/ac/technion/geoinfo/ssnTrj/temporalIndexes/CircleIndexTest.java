@@ -18,7 +18,7 @@ import org.neo4j.kernel.EmbeddedGraphDatabase;
 import ac.technion.geoinfo.ssnTrj.domain.NodeWrapper;
 
 import ac.technion.geoinfo.ssnTrj.domain.Static;
-import ac.technion.geoinfo.ssnTrj.indexes.temporal.BuildDBs;
+import ac.technion.geoinfo.ssnTrj.generator.BuildDBs;
 import ac.technion.geoinfo.ssnTrj.indexes.temporal.TindexLucene;
 import ac.technion.geoinfo.ssnTrj.indexes.temporal.TindexRelList;
 import ac.technion.geoinfo.ssnTrj.indexes.temporal.TemporalIndex;

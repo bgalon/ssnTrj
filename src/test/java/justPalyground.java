@@ -5,7 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 
-import ac.technion.geoinfo.ssnTrj.indexes.temporal.BuildDBs;
+import ac.technion.geoinfo.ssnTrj.generator.BuildDBs;
 import ac.technion.geoinfo.ssnTrj.indexes.temporal.timeHierarchy;
 
 

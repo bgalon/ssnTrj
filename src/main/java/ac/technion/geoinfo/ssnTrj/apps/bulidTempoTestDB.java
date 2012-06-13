@@ -2,7 +2,7 @@ package ac.technion.geoinfo.ssnTrj.apps;
 
 import java.util.Random;
 
-import ac.technion.geoinfo.ssnTrj.indexes.temporal.BuildDBs;
+import ac.technion.geoinfo.ssnTrj.generator.BuildDBs;
 import ac.technion.geoinfo.ssnTrj.indexes.temporal.TemporalIndex;
 import ac.technion.geoinfo.ssnTrj.indexes.temporal.TindexCircleImpl;
 import ac.technion.geoinfo.ssnTrj.indexes.temporal.TindexLucene;

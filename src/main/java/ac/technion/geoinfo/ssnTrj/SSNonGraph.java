@@ -687,8 +687,16 @@ public class SSNonGraph implements SSN, Static {
 		return user1.createRelationshipTo(user2, rlationType);
 	}
 	
+	public void AddTime(User theUser, SpatialEntity theSE, long startTime, long endTime)
+	{
+		
+
+	}
+	
+	
 	public TimePattern addPattren(User theUser, SpatialEntity theSE, String TimePattrenAsStr, double confident) throws Exception
 	{
+		//No longer in use, need to in Addtime
 		TimePattern theTP;
 		if(confident < 0 || confident > 1)
 			throw new Exception("con't create time patttren, the confident value is out of range");

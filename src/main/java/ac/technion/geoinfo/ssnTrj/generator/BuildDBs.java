@@ -1,4 +1,4 @@
-package ac.technion.geoinfo.ssnTrj.indexes.temporal;
+package ac.technion.geoinfo.ssnTrj.generator;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -15,6 +15,8 @@ import org.neo4j.kernel.EmbeddedGraphDatabase;
 import ac.technion.geoinfo.ssnTrj.domain.NodeWrapper;
 import ac.technion.geoinfo.ssnTrj.domain.NodeWrapperImpl;
 import ac.technion.geoinfo.ssnTrj.domain.Static;
+import ac.technion.geoinfo.ssnTrj.indexes.temporal.TemporalIndex;
+import ac.technion.geoinfo.ssnTrj.indexes.temporal.TestTIndexRel;
 
 public class BuildDBs implements Static{
 	//properties
