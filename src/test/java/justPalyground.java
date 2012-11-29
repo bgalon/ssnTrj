@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.Random;
 
 import ac.technion.geoinfo.ssnTrj.generator.BuildDBs;
-import ac.technion.geoinfo.ssnTrj.indexes.temporal.timeHierarchy;
+import ac.technion.geoinfo.ssnTrj.indexes.temporal.TimeHierarchy;
 
 
 public class justPalyground {

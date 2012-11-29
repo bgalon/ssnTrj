@@ -262,11 +262,11 @@ public class OSMimporter {
 										 roadCounter ++;
 										 if(ImportRoad(tempWay)) importsRoads++;
 									 }
-									 if (tempWay.attributeLst.containsKey("building"))
-									 {
-										 buildingCounter++;
-										 if(ImportBuilding(tempWay)) importsBuildings++;
-									 }
+//									 if (tempWay.attributeLst.containsKey("building"))
+//									 {
+//										 buildingCounter++;
+//										 if(ImportBuilding(tempWay)) importsBuildings++;
+//									 }
 									 if(wayCounter - oldWayCounter >= printStatus)
 									 {
 										 System.out.println("Status report (" + new Date() + ")");

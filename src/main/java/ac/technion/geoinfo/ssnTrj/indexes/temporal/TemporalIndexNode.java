@@ -20,8 +20,8 @@ public class TemporalIndexNode extends NodeWrapperImpl implements TemporalStatic
 		return (Long)underlayingNode.getProperty(END_TIME);
 	}
 	
-	public String getTimeHierarchy(){
-		return (String)underlayingNode.getProperty(TIME_HIERARCHY);
+	public TimeHierarchy getTimeHierarchy(){
+		return TimeHierarchy.valueOf((String)underlayingNode.getProperty(TIME_HIERARCHY));
 	}
 	
 	public int getHierarchyValue() {
